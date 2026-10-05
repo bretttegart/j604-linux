@@ -1,0 +1,17 @@
+#include "t8132-j604.dts"
+
+/ {
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+		ramoops@10300000000 {
+			compatible = "ramoops";
+			reg = <0x103 0x00000000 0x0 0x00100000>;
+			record-size = <0x00020000>;
+			console-size = <0x00080000>;
+			pmsg-size = <0x00020000>;
+			max-reason = <2>;
+		};
+	};
+};

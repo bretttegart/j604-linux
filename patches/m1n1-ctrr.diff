@@ -1,0 +1,103 @@
+diff --git a/src/kboot.c b/src/kboot.c
+index 4bcb2a4a..3cc37f1f 100644
+--- a/src/kboot.c
++++ b/src/kboot.c
+@@ -2845,6 +2845,36 @@ int kboot_prepare_dt(void *fdt)
+             bail("FDT: couldn't add reservation for M4+ SMP-RO CTRR area\n");
+     }
+ 
++    // Ported from the Gravity m1n1 tree (kboot.c): on T8132/T8140, iBoot
++    // leaves the CTRR range (the same registers as the CTRR_C block above)
++    // writable only from the boot CPU. The reservation above is skipped
++    // when Apple sysregs are unlocked, but the range stays enforced on
++    // secondary cores, so reserve it here regardless of the sysreg gate.
++    if (chip_id == T8132 || chip_id == T8140) {
++        u64 ctrr_start = ALIGN_DOWN(mrs(SYS_IMP_APL_CTRR_C_LWR_EL1), get_page_size());
++        u64 ctrr_end = ALIGN_UP(mrs(SYS_IMP_APL_CTRR_C_UPR_EL1) + SZ_4K, get_page_size());
++
++        printf("FDT: CTRR range 0x%lx..0x%lx, sysregs_unlocked=%d\n", ctrr_start, ctrr_end,
++               cpu_features->apple_sysregs_unlocked);
++        if (ctrr_end > ctrr_start) {
++            printf("FDT: Reserving CTRR range 0x%lx..0x%lx\n", ctrr_start, ctrr_end);
++            if (fdt_add_mem_rsv(dt, ctrr_start, ctrr_end - ctrr_start))
++                bail("FDT: Could not reserve CTRR range\n");
++        }
++
++        /* CTRR_C is only the 48 KiB at top_of_kernel_data. CTRR_D is the
++         * other secondary-core window and ends at the m1n1 image base. */
++        u64 ctrrd_start = ALIGN_DOWN(mrs(SYS_IMP_APL_CTRR_D_LWR_EL1), get_page_size());
++        u64 ctrrd_end = ALIGN_UP(mrs(SYS_IMP_APL_CTRR_D_UPR_EL1) + SZ_4K, get_page_size());
++
++        printf("FDT: CTRR_D range 0x%lx..0x%lx\n", ctrrd_start, ctrrd_end);
++        if (ctrrd_end > ctrrd_start) {
++            printf("FDT: Reserving CTRR_D range 0x%lx..0x%lx\n", ctrrd_start, ctrrd_end);
++            if (fdt_add_mem_rsv(dt, ctrrd_start, ctrrd_end - ctrrd_start))
++                bail("FDT: Could not reserve CTRR_D range\n");
++        }
++    }
++
+     /* setup console log buffer early to capture as much log as possible */
+     dt_setup_mtd_phram();
+ 
+diff --git a/src/nvme.c b/src/nvme.c
+index 65cc7d7b..52e89bc6 100644
+--- a/src/nvme.c
++++ b/src/nvme.c
+@@ -505,15 +505,36 @@ fail:
+     asc_free(nvme_asc);
+     nvme_asc = NULL;
+ 
+-    // Some machines call this ANS, some ANS2...
+-    pmgr_reset(nvme_die, "ANS");
+-    pmgr_reset(nvme_die, "ANS2");
++    /*
++     * nvme_init() is what normally records the die. This path runs when
++     * iBoot left ANS up and m1n1 never touched it, so learn the die here.
++     * Die 0 is the fallback on a single-die laptop if clock-gates is absent.
++     */
++    int adt_path[8];
++    int node = adt_path_offset_trace(adt, "/arm-io/ans", adt_path);
++    u32 cg;
++    if (node >= 0 && ADT_GETPROP(adt, node, "clock-gates", &cg) >= 0)
++        nvme_die = FIELD_GET(PMGR_DIE_ID, cg);
++    else if (nvme_base)
++        nvme_die = (nvme_base >> 37) & 3;
++    else
++        nvme_die = 0;
++    printf("nvme: ensure shutdown on die %d\n", nvme_die);
++
++    /* Some machines call this ANS, some ANS2. -1 means the name missed. */
++    int ans = pmgr_reset(nvme_die, "ANS");
++    int ans2 = pmgr_reset(nvme_die, "ANS2");
++    printf("nvme: pmgr reset ANS=%d ANS2=%d\n", ans, ans2);
+ }
+ 
+ void nvme_shutdown(void)
+ {
+     if (!nvme_initialized) {
+-        // nvme_ensure_shutdown();
++        /*
++         * raw22/raw23 called nvme_ensure_shutdown() here. Linux then
++         * took the cold path and stopped at ANS BOOT / -ETIME, with or
++         * without the APCIE_SYS_ST domain. Leave iBoot's ANS running.
++         */
+         return;
+     }
+ 
+diff --git a/src/string.c b/src/string.c
+index c9ccf5ac..fee96443 100644
+--- a/src/string.c
++++ b/src/string.c
+@@ -231,3 +231,12 @@ long atol(const char *s)
+ 
+     return val;
+ }
++
++#include <stddef.h>
++size_t wcslen(const wchar_t *s)
++{
++    size_t len = 0;
++    while (s[len])
++        len++;
++    return len;
++}
