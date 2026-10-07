@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
 	"strings"
 	"syscall"
 	"time"
@@ -55,8 +56,42 @@ func field(s, key string) string {
 	return strings.TrimPrefix(strings.TrimPrefix(token(s[i+len(key):]), "0x"), "0X")
 }
 
+
+// nvmeReadTest validates block I/O on /dev/nvme0n1: reads LBA1 and
+// checks for the GPT header signature "EFI PART". Read-only on
+// purpose: every sector of this disk belongs to APFS containers,
+// so no sector is safe to scratch-write until R5 carves one out.
+func nvmeReadTest() string {
+	var fd int
+	var err error
+	for i := 0; i < 20; i++ {
+		fd, err = syscall.Open("/dev/nvme0n1", syscall.O_RDONLY, 0)
+		if err == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if err != nil {
+		return "RDFAIL"
+	}
+	defer syscall.Close(fd)
+	// Apple ANS presents 4Kn sectors, so the GPT header (LBA1) sits
+	// at byte 4096, not 512. Scan both offsets.
+	for _, off := range []int64{4096, 512} {
+		buf := make([]byte, 512)
+		if _, err := syscall.Pread(fd, buf, off); err != nil {
+			return "RDFAIL"
+		}
+		if string(buf[:8]) == "EFI PART" {
+			return "RDOK"
+		}
+	}
+	return "RDNG"
+}
+
 func classify(msgs []string) (top, bot string) {
-	var csts, status, snap string
+	var csts, status, snap, snap2 string
+	var anskCPU, anskBST, anskBR string
 	hasNS, hasANS, hasInit, hasRT := false, false, false, false
 	for _, m := range msgs {
 		if strings.Contains(m, "nvme0n1") {
@@ -77,12 +112,47 @@ func classify(msgs []string) (top, bot string) {
 		if i := strings.Index(m, "Reset failure status:"); i >= 0 {
 			status = token(m[i+len("Reset failure status:"):])
 		}
-		if i := strings.Index(m, "NVME-SNAP"); i >= 0 {
+		if i := strings.Index(m, "ANSCHK cpu="); i >= 0 {
+			f := m[i:]
+			anskCPU = field(f, "cpu=")
+			anskBST = field(f, "bst=")
+		}
+		if strings.Contains(m, "ANSBR 2") {
+			anskBR = "2"
+		}
+		if strings.Contains(m, "ANSBR 3") {
+			anskBR = "3"
+		}
+		if i := strings.Index(m, "NVME-SNAP2"); i >= 0 {
+			snap2 = m[i:]
+		} else if i := strings.Index(m, "NVME-SNAP"); i >= 0 {
 			snap = m[i:]
 		}
 	}
 	if hasNS {
-		return "NVME0N1", "OK"
+		return "NVME0N1", nvmeReadTest()
+	}
+	if snap2 != "" {
+		cc2 := field(snap2, "cc=")
+		cst2 := field(snap2, "csts=")
+		if cc2 == "" {
+			cc2 = "NA"
+		}
+		if cst2 == "" {
+			cst2 = "NA"
+		}
+		return "CC2 " + cc2, "CSTS " + cst2
+	}
+	if anskCPU != "" {
+		br := anskBR
+		if br == "" {
+			br = "0"
+		}
+		bst4 := anskBST
+		if len(bst4) > 4 {
+			bst4 = bst4[:4]
+		}
+		return "BR" + br + " B" + bst4, "C" + anskCPU
 	}
 	errn := strings.TrimPrefix(status, "-")
 	if hasANS {
@@ -265,20 +335,130 @@ func holdConsole(line string) {
 	}
 }
 
-func main() {
-	go func() {
-		time.Sleep(45 * time.Second)
-		reboot()
-	}()
+func diagLines(msgs []string) []string {
+	keys := []string{"RTKit", "rtkit", "ANS", "nvme", "NVMe", "sart", "SART", "mailbox", "apple-"}
+	var out []string
+	for _, m := range msgs {
+		hit := false
+		for _, k := range keys {
+			if strings.Contains(m, k) {
+				hit = true
+				break
+			}
+		}
+		if !hit {
+			continue
+		}
+		if i := strings.Index(m, ";"); i >= 0 {
+			m = m[i+1:]
+		}
+		if len(m) > 76 {
+			m = m[:76]
+		}
+		out = append(out, m)
+	}
+	if len(out) > 45 {
+		out = out[len(out)-45:]
+	}
+	return out
+}
 
+var pstoreStatus string
+
+func pstoreDiag() bool {
+	pstoreStatus = "STO ERR"
+	_ = syscall.Mount("pstore", "/sys/fs/pstore", "pstore", 0, "")
+	entries, err := os.ReadDir("/sys/fs/pstore")
+	if err != nil {
+		return false
+	}
+	nConsole := 0
+	keys := []string{"RTKit", "ANS", "nvme", "sart", "crashlog", "SART", "mailbox"}
+	var out []string
+	failed := false
+	for _, e := range entries {
+		if !strings.HasPrefix(e.Name(), "console-ramoops") {
+			continue
+		}
+		nConsole++
+		data, err := os.ReadFile("/sys/fs/pstore/" + e.Name())
+		if err != nil {
+			continue
+		}
+		text := string(data)
+		if strings.Contains(text, "RTKit crashed") ||
+			strings.Contains(text, "ANS did not boot") ||
+			strings.Contains(text, "Reset failure status:") {
+			failed = true
+		}
+		for _, line := range strings.Split(text, "\n") {
+			hit := false
+			for _, k := range keys {
+				if strings.Contains(line, k) {
+					hit = true
+					break
+				}
+			}
+			if hit {
+				out = append(out, line)
+			}
+		}
+	}
+	fInt := 0
+	if failed {
+		fInt = 1
+	}
+	pstoreStatus = fmt.Sprintf("STO %d C %d F %d", len(entries), nConsole, fInt)
+	if !failed || len(out) == 0 {
+		return false
+	}
+	if len(out) > 55 {
+		out = out[len(out)-55:]
+	}
+	tty, err := syscall.Open("/dev/tty0", syscall.O_RDWR, 0)
+	if err != nil {
+		return false
+	}
+	_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(tty), 0x4B3A, 0)
+	f := os.NewFile(uintptr(tty), "tty0")
+	fmt.Fprintf(f, "\n===== PSTORE DIAG =====\n")
+	for _, l := range out {
+		fmt.Fprintln(f, l)
+	}
+	fmt.Fprintf(f, "===== END PSTORE =====\n")
+	return true
+}
+
+func main() {
 	_ = syscall.Mount("proc", "/proc", "proc", 0, "")
 	_ = syscall.Mount("sysfs", "/sys", "sysfs", 0, "")
 	_ = syscall.Mount("devtmpfs", "/dev", "devtmpfs", 0, "")
+
+	if pstoreDiag() {
+		select {}
+	}
 
 	msgs := drainKmsg()
 	time.Sleep(3 * time.Second)
 	msgs = append(msgs, drainKmsg()...)
 	top, bot := classify(msgs)
+
+	if strings.HasPrefix(top, "BR") {
+		tty2, err2 := syscall.Open("/dev/tty0", syscall.O_RDWR, 0)
+		if err2 == nil {
+			_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(tty2), 0x4B3A, 0)
+			f := os.NewFile(uintptr(tty2), "tty0")
+			fmt.Fprintf(f, "\n===== KMSG DIAG =====\n")
+			for _, l := range diagLines(msgs) {
+				fmt.Fprintln(f, l)
+			}
+			fmt.Fprintf(f, "===== END KMSG =====\n")
+		}
+		select {}
+	}
+	if pstoreStatus != "" {
+		bot = strings.TrimSpace(bot + " " + pstoreStatus)
+	}
 
 	tty, err := syscall.Open("/dev/tty0", syscall.O_RDWR, 0)
 	if err == nil {

@@ -1,0 +1,83 @@
+diff --git a/src/nvme.c b/src/nvme.c
+index 65cc7d7b..8925daf0 100644
+--- a/src/nvme.c
++++ b/src/nvme.c
+@@ -448,10 +448,20 @@ out_disable_ctrl:
+     nvme_ctrl_disable();
+     nvme_poll_syslog();
+ out_shutdown:
++    /*
++     * J604: fully stop the ANS, then boot the IOP firmware fresh from
++     * m1n1 so the next stage finds the iBoot-like state the kernel's
++     * apple_rtkit_wake() path handles (CPU RUN set, BOOT_STATUS OK).
++     * A kernel cold boot of the 26.6.2 (G16) firmware crashes the IOP
++     * (-ETIME + crashlog dump, raw43-46), so do the cold boot here,
++     * where the same sequence is proven by nvme_init().
++     */
+     rtkit_sleep(nvme_rtkit);
+     // Some machines call this ANS, some ANS2...
+     pmgr_reset(nvme_die, "ANS");
+     pmgr_reset(nvme_die, "ANS2");
++    if (!rtkit_boot(nvme_rtkit))
++        printf("nvme: rtkit reboot failed\n");
+ out_rtkit:
+     rtkit_free(nvme_rtkit);
+ out_sart:
+@@ -505,15 +515,36 @@ fail:
+     asc_free(nvme_asc);
+     nvme_asc = NULL;
+ 
+-    // Some machines call this ANS, some ANS2...
+-    pmgr_reset(nvme_die, "ANS");
+-    pmgr_reset(nvme_die, "ANS2");
++    /*
++     * nvme_init() is what normally records the die. This path runs when
++     * iBoot left ANS up and m1n1 never touched it, so learn the die here.
++     * Die 0 is the fallback on a single-die laptop if clock-gates is absent.
++     */
++    int adt_path[8];
++    int node = adt_path_offset_trace(adt, "/arm-io/ans", adt_path);
++    u32 cg;
++    if (node >= 0 && ADT_GETPROP(adt, node, "clock-gates", &cg) >= 0)
++        nvme_die = FIELD_GET(PMGR_DIE_ID, cg);
++    else if (nvme_base)
++        nvme_die = (nvme_base >> 37) & 3;
++    else
++        nvme_die = 0;
++    printf("nvme: ensure shutdown on die %d\n", nvme_die);
++
++    /* Some machines call this ANS, some ANS2. -1 means the name missed. */
++    int ans = pmgr_reset(nvme_die, "ANS");
++    int ans2 = pmgr_reset(nvme_die, "ANS2");
++    printf("nvme: pmgr reset ANS=%d ANS2=%d\n", ans, ans2);
+ }
+ 
+ void nvme_shutdown(void)
+ {
+     if (!nvme_initialized) {
+-        // nvme_ensure_shutdown();
++        /*
++         * raw22/raw23 called nvme_ensure_shutdown() here. Linux then
++         * took the cold path and stopped at ANS BOOT / -ETIME, with or
++         * without the APCIE_SYS_ST domain. Leave iBoot's ANS running.
++         */
+         return;
+     }
+ 
+diff --git a/src/string.c b/src/string.c
+index c9ccf5ac..fee96443 100644
+--- a/src/string.c
++++ b/src/string.c
+@@ -231,3 +231,12 @@ long atol(const char *s)
+ 
+     return val;
+ }
++
++#include <stddef.h>
++size_t wcslen(const wchar_t *s)
++{
++    size_t len = 0;
++    while (s[len])
++        len++;
++    return len;
++}

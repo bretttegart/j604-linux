@@ -301,7 +301,7 @@ index 4a3141d9f..9a175ab92 100644
  		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2,
  				   VM_TMR_FIQ_ENABLE_V | VM_TMR_FIQ_ENABLE_P, 0);
 diff --git a/drivers/nvme/host/apple.c b/drivers/nvme/host/apple.c
-index a3343c49c..3c79632bd 100644
+index a3343c49c..ed08c69e4 100644
 --- a/drivers/nvme/host/apple.c
 +++ b/drivers/nvme/host/apple.c
 @@ -42,7 +42,11 @@
@@ -345,7 +345,18 @@ index a3343c49c..3c79632bd 100644
  		dev_warn_ratelimited(anv->dev,
  				     "NVMMU TCB invalidation failed\n");
  }
-@@ -1114,6 +1121,18 @@ static void apple_nvme_reset_work(struct work_struct *work)
+@@ -1096,8 +1103,10 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 	 * Only do the soft-reset if the CPU is not running, which means either we
+ 	 * or the previous stage shut it down cleanly.
+ 	 */
++ 	dev_err(anv->dev, "ANSCHK cpu=%08x bst=%08x run=%d\n", readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL), readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS), apple_rtkit_is_running(anv->rtk));
+ 	if (!(readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
+ 		APPLE_ANS_COPROC_CPU_CONTROL_RUN)) {
++ 		dev_err(anv->dev, "ANSBR 2\n");
+ 
+ 		ret = reset_control_assert(anv->reset);
+ 		if (ret)
+@@ -1114,6 +1123,26 @@ static void apple_nvme_reset_work(struct work_struct *work)
  		writel(APPLE_ANS_COPROC_CPU_CONTROL_RUN,
  		       anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
  
@@ -358,13 +369,21 @@ index a3343c49c..3c79632bd 100644
 +		 * sent before this mailbox was listening, so apple_rtkit_boot
 +		 * waits out -ETIME. The boot path's last step, AP power ON,
 +		 * was never sent.
++		 *
++		 * raw34: match Gravity's proven t8132 flow instead: use
++		 * apple_rtkit_wake(), which sends the IOP INIT message and
++		 * then runs the full boot handshake (endpoint map + IOP
++		 * power ACK + AP power ON). The endpoint map appears to be
++		 * emitted in response to INIT, not as a one-time broadcast
++		 * we missed.
++ 		dev_err(anv->dev, "ANSBR 3\n");
 +		 */
-+		ret = apple_rtkit_set_ap_power_on(anv->rtk);
++		ret = apple_rtkit_wake(anv->rtk);
 +	} else if (anv->hw->needs_ioq_register) {
  		ret = apple_rtkit_boot(anv->rtk);
  	} else {
  		ret = apple_rtkit_wake(anv->rtk);
-@@ -1153,14 +1172,32 @@ static void apple_nvme_reset_work(struct work_struct *work)
+@@ -1153,14 +1182,32 @@ static void apple_nvme_reset_work(struct work_struct *work)
  		writel(APPLE_ANS_LINEAR_SQ_EN,
  			anv->mmio_nvme + APPLE_ANS_LINEAR_SQ_CTRL);
  
@@ -402,7 +421,7 @@ index a3343c49c..3c79632bd 100644
  	}
  
  	/* Setup the admin queue */
-@@ -1173,9 +1210,9 @@ static void apple_nvme_reset_work(struct work_struct *work)
+@@ -1173,9 +1220,9 @@ static void apple_nvme_reset_work(struct work_struct *work)
  	if (anv->hw->has_lsq_nvmmu) {
  		/* Setup NVMMU for both queues */
  		writeq(anv->adminq.tcb_dma_addr,
@@ -414,7 +433,22 @@ index a3343c49c..3c79632bd 100644
  	}
  
  	anv->ctrl.sqsize =
-@@ -1211,6 +1248,16 @@ static void apple_nvme_reset_work(struct work_struct *work)
+@@ -1184,8 +1231,13 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 
+ 	dev_dbg(anv->dev, "Enabling controller now");
+ 	ret = nvme_enable_ctrl(&anv->ctrl);
+-	if (ret)
++	if (ret) {
++		/* raw31: did the CC enable write land? (read-only) */
++		dev_err(anv->dev, "NVME-SNAP2 cc=%08x csts=%08x\n",
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
+ 		goto out;
++	}
+ 
+ 	dev_dbg(anv->dev, "Starting admin queue");
+ 	apple_nvme_init_queue(&anv->adminq);
+@@ -1211,6 +1263,16 @@ static void apple_nvme_reset_work(struct work_struct *work)
  	if (ret)
  		goto out_remove_cq;
  
@@ -431,7 +465,7 @@ index a3343c49c..3c79632bd 100644
  	apple_nvme_init_queue(&anv->ioq);
  	nr_io_queues = 1;
  	ret = nvme_set_queue_count(&anv->ctrl, &nr_io_queues);
-@@ -1543,6 +1590,20 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+@@ -1543,6 +1605,20 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
  		ret = PTR_ERR(anv->mmio_nvme);
  		goto put_dev;
  	}
@@ -452,7 +486,7 @@ index a3343c49c..3c79632bd 100644
  
  	if (anv->hw->has_lsq_nvmmu) {
  		anv->adminq.sq_db = anv->mmio_nvme + APPLE_ANS_LINEAR_ASQ_DB;
-@@ -1563,6 +1624,16 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+@@ -1563,6 +1639,16 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
  		goto put_dev;
  	}
  
@@ -469,7 +503,7 @@ index a3343c49c..3c79632bd 100644
  	anv->reset = devm_reset_control_array_get_exclusive(anv->dev);
  	if (IS_ERR(anv->reset)) {
  		ret = dev_err_probe(dev, PTR_ERR(anv->reset),
-@@ -1753,17 +1824,30 @@ static DEFINE_SIMPLE_DEV_PM_OPS(apple_nvme_pm_ops, apple_nvme_suspend,
+@@ -1753,17 +1839,30 @@ static DEFINE_SIMPLE_DEV_PM_OPS(apple_nvme_pm_ops, apple_nvme_suspend,
  
  static const struct apple_nvme_hw apple_nvme_t8015_hw = {
  	.has_lsq_nvmmu = false,
@@ -500,11 +534,98 @@ index a3343c49c..3c79632bd 100644
  	{ .compatible = "apple,nvme-ans2", .data = &apple_nvme_t8103_hw },
  	{},
  };
+diff --git a/drivers/soc/apple/rtkit-internal.h b/drivers/soc/apple/rtkit-internal.h
+index c82065a8b..d97de83d9 100644
+--- a/drivers/soc/apple/rtkit-internal.h
++++ b/drivers/soc/apple/rtkit-internal.h
+@@ -43,6 +43,7 @@ struct apple_rtkit {
+ 	DECLARE_BITMAP(endpoints, APPLE_RTKIT_MAX_ENDPOINTS);
+ 
+ 	struct apple_rtkit_shmem ioreport_buffer;
++	struct apple_rtkit_shmem system7_buffer;
+ 	struct apple_rtkit_shmem crashlog_buffer;
+ 	struct apple_rtkit_shmem oslog_buffer;
+ 
 diff --git a/drivers/soc/apple/rtkit.c b/drivers/soc/apple/rtkit.c
-index ef0c399ea..f06412633 100644
+index ef0c399ea..ba5878ccb 100644
 --- a/drivers/soc/apple/rtkit.c
 +++ b/drivers/soc/apple/rtkit.c
-@@ -791,6 +791,15 @@ static int apple_rtkit_set_ap_power_state(struct apple_rtkit *rtk,
+@@ -21,6 +21,8 @@ enum {
+ 	APPLE_RTKIT_EP_SYSLOG = 2,
+ 	APPLE_RTKIT_EP_DEBUG = 3,
+ 	APPLE_RTKIT_EP_IOREPORT = 4,
++	/* Advertised by newer firmware and required to complete RTKit boot. */
++	APPLE_RTKIT_EP_UNKNOWN7 = 7,
+ 	APPLE_RTKIT_EP_OSLOG = 8,
+ 	APPLE_RTKIT_EP_TRACEKIT = 0xa,
+ };
+@@ -61,6 +63,8 @@ enum {
+ 
+ #define APPLE_RTKIT_SYSLOG_TYPE GENMASK_ULL(59, 52)
+ 
++#define APPLE_RTKIT_SYSTEM7_BUFFER_REPLY 5
++
+ #define APPLE_RTKIT_SYSLOG_LOG 5
+ 
+ #define APPLE_RTKIT_SYSLOG_INIT	     8
+@@ -191,6 +195,7 @@ static void apple_rtkit_management_rx_epmap(struct apple_rtkit *rtk, u64 msg)
+ 		case APPLE_RTKIT_EP_CRASHLOG:
+ 		case APPLE_RTKIT_EP_DEBUG:
+ 		case APPLE_RTKIT_EP_IOREPORT:
++		case APPLE_RTKIT_EP_UNKNOWN7:
+ 		case APPLE_RTKIT_EP_OSLOG:
+ 		case APPLE_RTKIT_EP_TRACEKIT:
+ 			dev_dbg(rtk->dev,
+@@ -309,6 +314,8 @@ static int apple_rtkit_common_rx_get_buffer(struct apple_rtkit *rtk,
+ 					    buffer->iova >> 12);
+ 		} else {
+ 			reply = FIELD_PREP(APPLE_RTKIT_SYSLOG_TYPE,
++					   ep == APPLE_RTKIT_EP_UNKNOWN7 ?
++					   APPLE_RTKIT_SYSTEM7_BUFFER_REPLY :
+ 					   APPLE_RTKIT_BUFFER_REQUEST);
+ 			reply |= FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_SIZE,
+ 					    buffer->size >> 12);
+@@ -420,6 +427,21 @@ static void apple_rtkit_ioreport_rx(struct apple_rtkit *rtk, u64 msg)
+ 	}
+ }
+ 
++static void apple_rtkit_system7_rx(struct apple_rtkit *rtk, u64 msg)
++{
++	u8 type = FIELD_GET(APPLE_RTKIT_SYSLOG_TYPE, msg);
++
++	switch (type) {
++	case APPLE_RTKIT_BUFFER_REQUEST:
++		apple_rtkit_common_rx_get_buffer(rtk, &rtk->system7_buffer,
++						 APPLE_RTKIT_EP_UNKNOWN7, msg);
++		break;
++	default:
++		dev_warn(rtk->dev, "RTKit: Unknown system endpoint 7 message: %llx\n",
++			 msg);
++	}
++}
++
+ static void apple_rtkit_syslog_rx_init(struct apple_rtkit *rtk, u64 msg)
+ {
+ 	rtk->syslog_n_entries = FIELD_GET(APPLE_RTKIT_SYSLOG_N_ENTRIES, msg);
+@@ -544,6 +566,9 @@ static void apple_rtkit_rx_work(struct work_struct *work)
+ 	case APPLE_RTKIT_EP_IOREPORT:
+ 		apple_rtkit_ioreport_rx(rtk, rtk_work->msg);
+ 		break;
++	case APPLE_RTKIT_EP_UNKNOWN7:
++		apple_rtkit_system7_rx(rtk, rtk_work->msg);
++		break;
+ 	case APPLE_RTKIT_EP_OSLOG:
+ 		apple_rtkit_oslog_rx(rtk, rtk_work->msg);
+ 		break;
+@@ -743,6 +768,7 @@ int apple_rtkit_reinit(struct apple_rtkit *rtk)
+ 	flush_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
++	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+@@ -791,6 +817,15 @@ static int apple_rtkit_set_ap_power_state(struct apple_rtkit *rtk,
  	return 0;
  }
  
@@ -520,6 +641,14 @@ index ef0c399ea..f06412633 100644
  static int apple_rtkit_set_iop_power_state(struct apple_rtkit *rtk,
  					   unsigned int state)
  {
+@@ -947,6 +982,7 @@ void apple_rtkit_free(struct apple_rtkit *rtk)
+ 	destroy_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
++	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
 diff --git a/drivers/soc/apple/sart.c b/drivers/soc/apple/sart.c
 index 9eaf3febb..4b5183dd6 100644
 --- a/drivers/soc/apple/sart.c
