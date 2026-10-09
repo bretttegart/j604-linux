@@ -39,17 +39,27 @@ row with the observed result; a planned outcome is not a test result.
 | CRASHLOG-DIAG-A5 | C4 + compact crashlog structure/version/footer diagnostics | Pager reached; ANS still FAIL | One send 13:04:03 MDT, C5-RUN-20261009T130403-0600. PAGE 1/79: ANSBR 2, namespace absent, first crash [325], final -62 [1061], 2581 lines/0 gaps. Ccst task 14 maps to power (C4 task 12 maps to Cmd); PC 19a4f0, ESR low32 be000000; CasC packed words repeat 49f008000; raw Cver RTKit_release-3514.0.15.release. Rejected 32-byte footer is CLHE, flags 0x0a misread as section length. Nikon capture retained; host exit 1 after handoff. See C5-SESSION-2026-10-09.md. |
 
 | CRASHLOG-DIAG-A5-REPEAT | Unchanged C5 after fresh LabOS firmware identity capture | Pager reached; ANS still FAIL | One send 14:24:17 MDT. Boot ID 9f24e8f4-a15d-4c48-a068-62eac9c56bc7; ANSBR 2, no namespace, first crash [299], final -62 [1063], 2587 lines/0 gaps. Cver base c0c000 vs first C5 184000; all ten normalized frames identical. Task 14 power, ESR low32 be000000, FAR 49f008000; l2c_adr upper bits differ. See C5-REPEAT-SESSION-2026-10-09.md. |
+| CRASHLOG-DIAG-A6 | C5 + complete raw Crg8/Cver dump, explicit Cver base, ESR low32 marker, CLHE footer recognition | Pager reached; ANS still FAIL; diagnostic capture complete | One send ~15:17 MDT, C6-RUN on sunki. PAGE 1/82: ANSBR 2, namespace absent, first crash [299], final -62 [1120], 2646 lines/0 gaps. Cver payload 0x90/0x90, base_candidate 0x71c000, RTKit_release-3514.0.15 / 27.0.1 SFR ANS string; Crg8 payload 0x350/0x350; ESR low32 be000000; FAR 49f008000; CLHE footer walked 0x4be0. See C6-SESSION-2026-10-09.md and CRG8-ANALYSIS-2026-10-09.md. |
 | CHAIN-B2 / B3 | Repeat successful B on fresh boots | CONDITIONAL, NOT RUN | |
 
-Post-C5 acquisition is complete: all 185 collected-file checksums pass;
-Apple's 27.0.1 T8132 ANS container matches the signed SFR ANS digest.
-Fresh LabOS's chosen manifest is byte-identical to SFR/current and its
-live __TEXT matches the candidate except six startup metadata bytes.
-[The repeat](C5-REPEAT-SESSION-2026-10-09.md) validates C5's runtime
-mapping across two boots. Fault-address translation remains unresolved.
-No firmware was flashed; the complete-26.6.2 restore history is preserved.
-[Current plan](NEXT-TEST-AFTER-C5-2026-10-09.md): trace exception context and
-address mapping offline, then one targeted diagnostic. No C6 built/sent.
+Post-C6 state: C4, both C5 runs, and C6 all reach the pager and fail the
+same ANS cold restart (ANSBR 2, no namespace, final -62). C6 completes
+the diagnostic capture through the full raw Crg8: the reader layout is
+correct, `unk[64]` is unwritten exception-stack residue with no hidden
+interrupted context or recoverable callback target, FAR `0x49f008000`
+does not translate in the captured ADT (nearest arm-io/apcie range is
+0x497000000–0x497060000), and the asynchronous SError cannot identify the
+faulting access. See [C6 session](C6-SESSION-2026-10-09.md) and
+[CRG8 analysis](CRG8-ANALYSIS-2026-10-09.md).
+
+Firmware provenance remains a split observation, not a proven cause:
+running macOS/stage-two is 26.6.2 (25G83), LabOS Preboot restore/cryptex
+files are 26.7.1 (25G241), iSCPreboot SFR/current and the booted ANS
+image are 27-family/27.0.1, and stage-one/system firmware is
+mBoot-20457.1.29. No firmware was flashed in this investigation. The next
+single datum would be the crashlog mailbox-history section (the IOP
+power-state request/ack exchange); it is PARKED as of Oct 9 per Brett.
+No C7 has been built or sent.
 
 ## Per-run record template
 

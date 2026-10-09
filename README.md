@@ -11,16 +11,20 @@ LabOS restore files 26.7.1, and SFR/current 27.0.1. Fresh LabOS uses the
 same captured SFR ANS manifest. The timing of component changes remains
 unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
-> **Start here (Oct 9):** [The unchanged C5 repeat](C5-REPEAT-SESSION-2026-10-09.md)
-> reaches the pager and reproduces the cold ANS failure. All ten stack
-> addresses match the first C5 after accounting for the runtime base;
-> task 14 is `power`, and the repeated packed error address is
-> `0x49f008000`. [Firmware acquisition and live LabOS capture](FIRMWARE-INVENTORY-2026-10-09.md)
-> verify the matching code image. [The current plan](NEXT-TEST-AFTER-C5-2026-10-09.md)
-> traces the exception context and translates that address before choosing
-> one targeted diagnostic or behavior change. No C6 has been built or sent.
-> [C4 video findings](C4-VIDEO-REVIEW-2026-10-09.md) are the prior comparison;
-> C/C2's wedge came from ANS reads during reset. The
+> **Start here (Oct 9):** [C6](C6-SESSION-2026-10-09.md) reaches the pager
+> and reproduces the cold ANS failure, but completes the diagnostic
+> payload capture: full Crg8 (0x350 B) and Cver (0x90 B). The
+> [full Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md) verifies the reader
+> layout, finds no hidden interrupted context in `unk[64]`, leaves FAR
+> `0x49f008000` untranslated, and keeps the firmware version-split as an
+> observation rather than a proven cause. The next single datum would be
+> the crashlog mailbox-history section (IOP power-state request/ack);
+> it is parked as of Oct 9. No C7 has been built or sent.
+> [Firmware acquisition and live LabOS capture](FIRMWARE-INVENTORY-2026-10-09.md)
+> verify the matching 27-family ANS code image; running macOS/stage-two
+> remains 26.6.2. [C4 video findings](C4-VIDEO-REVIEW-2026-10-09.md) and
+> [C5](C5-SESSION-2026-10-09.md) are prior comparisons; C/C2's wedge came
+> from ANS reads during reset. The
 > [detailed review](REVIEW-2026-10-07.md) contains the desktop roadmap, and
 > [test results](TEST-RESULTS.md) preserve the hardware observations.
 
@@ -51,8 +55,8 @@ fbcon=nodefer`.
 
 ## Contents
 
-- `NEXT-TEST-AFTER-C5-2026-10-09.md` — normalized C5 findings and the next
-  steps for exception-context decoding and address translation.
+- `NEXT-TEST-AFTER-C5-2026-10-09.md` — after-C5 plan; its Crg8/Cver capture
+  items are completed by C6 and the mailbox-history datum is parked.
 - `C5-CRASHLOG-TRANSCRIPTION-2026-10-09.json` — selected manually captured
   bytes/values and source frame hashes.
 
@@ -62,6 +66,10 @@ fbcon=nodefer`.
 - `C5-REPEAT-SESSION-2026-10-09.md` — unchanged repeat and cross-run address
   normalization; selected values and photo hashes in
   `C5-REPEAT-TRANSCRIPTION-2026-10-09.json`.
+- `C6-SESSION-2026-10-09.md` — diagnostic-only C6 run: same ANS failure,
+  complete raw Crg8/Cver capture, artifacts, staging, and hardware result.
+- `CRG8-ANALYSIS-2026-10-09.md` — full Crg8 layout/register/FAR analysis;
+  no hidden interrupted context, FAR untranslated, conclusion inconclusive.
 - `C4-VIDEO-REVIEW-2026-10-09.md` — verified reset/exception chronology and
   limits of the video transcription.
 - `C4-SESSION-2026-10-09.md` — current payload hashes, staging/run commands,

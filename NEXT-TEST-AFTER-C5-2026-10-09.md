@@ -1,5 +1,11 @@
 # Next steps after C5 — Oct 9
 
+> **Later Oct 9 update:** the offline Crg8/Cver decode and diagnostic-only
+> C6 described below are now complete; see [C6](C6-SESSION-2026-10-09.md)
+> and [the full Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md). The remaining
+> mailbox-history datum is parked. This file is retained as the after-C5
+> plan that led to C6.
+
 **The unchanged C5 repeat is complete.** It again reaches the pager and
 fails ANS cold restart. All ten stack addresses match the first C5 run
 once normalized by Cver's runtime base. Matching firmware acquisition and
@@ -73,8 +79,8 @@ fields the current decoder may hide:
 Do not build/send C6 merely to reproduce the known outcome: first specify
 which missing context field will settle the code-path or format question.
 Keep stage1 behavior, firmware, DTB, init and reset/mailbox behavior fixed.
-C6 has **not** been built or sent. The Mac can remain at the C5 pager while
-this offline work proceeds.
+At the time of this after-C5 plan, C6 had **not** yet been built or sent;
+it was later built and sent on Oct 9 (see the update at the top of this file).
 
 ## Then: one measured path change
 
