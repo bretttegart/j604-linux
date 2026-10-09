@@ -1,0 +1,96 @@
+{
+  "source_url": "https://updates.cdn-apple.com/2026FallFCS/59241290-5d51-4ca8-9df4-31624b9a4eac/UniversalMac_27.0.1_26A434_Restore.ipsw",
+  "ipsw_version": "27.0.1",
+  "ipsw_build": "26A434",
+  "range_bytes_downloaded": 4419622,
+  "ansf": {
+    "source": "ansf.t8132_ASP3.release.im4p",
+    "description": [
+      "IM4P",
+      "ansf",
+      "AppleStorageFirmwareASP3-241.0.12~642"
+    ],
+    "container_sha256": "5db4aac1f16e1889f93352e012708f654ef10f41dc471c399cda24497c5bc7b9",
+    "container_sha384": "a22d9804b32ff94be7582b822b3ed5c52473ca29313e1664dc7b71540337d17980b953cf447b03a6b1a8fe5407a4a542",
+    "compressed_payload_sha384": "e34bcaec8849f8c931778e0e6a0dbf9f6deb54afdfd051b5dae08154dd023369ac33925282ef6668c04963162a388c49",
+    "decompressed_bytes": 6986032,
+    "decompressed_sha256": "93d9bdf1f39b3fef55c7a30603be39f6fc29b854c2afea65e318cea870239486",
+    "version_strings": [
+      "RTKit_release-3514.0.15.release",
+      "RTKit: %s - Client: %s",
+      "AppleStorageFirmwareASP3-241.0.12~642",
+      "t8132_ASP3.release-AppleStorageFirmwareASP3-241.0.12~642~241.0.12~642"
+    ],
+    "segments": [
+      {
+        "name": "__TEXT",
+        "vmaddr": 0,
+        "vmsize": 2375680,
+        "fileoff": 16384,
+        "filesize": 2375680
+      },
+      {
+        "name": "__DATA",
+        "vmaddr": 2375680,
+        "vmsize": 4603904,
+        "fileoff": 2392064,
+        "filesize": 4603904
+      }
+    ],
+    "C5_Cver_first64_file_offset": -1
+  },
+  "current_macos_sfr_digest_matches_ansf_container": true,
+  "c5_rtkit_version_matches": true,
+  "labos_chosen_manifest_captured": true,
+  "runtime_address_mapping_validated": true,
+  "installed_or_flashed": false,
+  "local_artifact_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/ANS-FIRMWARE-CANDIDATE-27.0.1",
+  "mapping_scope": "Fresh LabOS ANS __TEXT identity verified by bounded DRAM read. C5 runtime base inferred from Cver payload +16 and validated by ten identical normalized frames across two runs, with nine noninitial frames at call instructions. SError fault-address translation remains unresolved.",
+  "live_comparison": {
+    "capture_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/LABOS-ADT-20261009T141804-0600",
+    "live_text_sha256": "abc2261691bb8016a93f71b6ea516dd643fc8bb32d1c77c2febda88283620e1c",
+    "candidate_text_sha256": "13db2248a644ccdff4e1efa08e9bfa56e3dc8d4bf7f0703c7b98d636e5a4165a",
+    "text_exact_match": false,
+    "text_diff_bytes": 6,
+    "first_text_diff_offsets": [
+      16933,
+      16934,
+      16958,
+      16959,
+      16960,
+      16961
+    ],
+    "labos_manifest_matches_macos_manifest": true,
+    "mapping": {
+      "phys": "0x10000004000",
+      "iova": "0x0",
+      "remap": "0x10000004000",
+      "bytes": 2375680,
+      "unknown": 1,
+      "sha256": "abc2261691bb8016a93f71b6ea516dd643fc8bb32d1c77c2febda88283620e1c"
+    }
+  },
+  "c5_runtime_mapping": {
+    "first_c5_runtime_base": "0x184000",
+    "repeat_runtime_base": "0xc0c000",
+    "normalized_stack": [
+      "0x164f0",
+      "0xd838",
+      "0x8c58",
+      "0x25ce4",
+      "0x3a408",
+      "0x3e8a0",
+      "0x3b370",
+      "0x21ad8",
+      "0x21978",
+      "0x216bc"
+    ],
+    "normalized_stack_equal": true,
+    "normalized_pc": "0x164f0",
+    "normalized_sp": "0x258f60",
+    "nine_noninitial_frames_match_call_instructions": true,
+    "c4_runtime_base_known": false,
+    "fault_address_translation_validated": false,
+    "l2c_adr_changed_upper_bit_mask": "0x40000000000"
+  }
+}

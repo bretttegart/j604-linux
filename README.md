@@ -5,20 +5,24 @@ This repo is a public snapshot of a live investigation: patches, device
 trees, and the test init, published for backup and because the current
 blocker (NVMe) could use more eyes.
 
-**Machine:** Mac16,1, T8132 (J604), Board-ID 0x22. The installed macOS was
-reported as 26.6.2 (25G83), with a DFU restore on Oct 5. Firmware provenance
-needs reconciliation: raw52 (Oct 7) still reports OS mBoot
-`18000.161.10.701.1` and system mBoot `20457.1.29`, mapped by the local m1n1
-tree to 26.7 and 27.0. Successful raw34 also reports those identifiers.
-Do not consider either firmware mismatch or its elimination established.
-
-> **Start here (Oct 7 results):** [Post-audit plan](POST-SHUT-AUDIT-PLAN-2026-10-07.md)
-> follows [Muse's shutdown audit](SHUT-AUDIT-RESULT-2026-10-07.md): stage1
-> shutdown ACKs and reset succeeded, but the SSD chain still crashes. Next is
-> a diagnostics-only kernel build to expose the firmware crashlog and Linux
-> reset chronology. The [detailed review](REVIEW-2026-10-07.md) contains the
-> graphical-desktop roadmap; [test results](TEST-RESULTS.md) preserve the
-> hardware observations.
+**Machine:** Mac16,1, T8132 (J604), Board-ID 0x22. The user reports a full
+26.6.2 (25G83) restore. Oct 9 collection confirms running macOS 26.6.2,
+LabOS restore files 26.7.1, and SFR/current 27.0.1. Fresh LabOS uses the
+same captured SFR ANS manifest. The timing of component changes remains
+unknown; these version facts do not establish an incompatible combination
+or a cause of the ANS crash. See the firmware provenance record below.
+> **Start here (Oct 9):** [The unchanged C5 repeat](C5-REPEAT-SESSION-2026-10-09.md)
+> reaches the pager and reproduces the cold ANS failure. All ten stack
+> addresses match the first C5 after accounting for the runtime base;
+> task 14 is `power`, and the repeated packed error address is
+> `0x49f008000`. [Firmware acquisition and live LabOS capture](FIRMWARE-INVENTORY-2026-10-09.md)
+> verify the matching code image. [The current plan](NEXT-TEST-AFTER-C5-2026-10-09.md)
+> traces the exception context and translates that address before choosing
+> one targeted diagnostic or behavior change. No C6 has been built or sent.
+> [C4 video findings](C4-VIDEO-REVIEW-2026-10-09.md) are the prior comparison;
+> C/C2's wedge came from ANS reads during reset. The
+> [detailed review](REVIEW-2026-10-07.md) contains the desktop roadmap, and
+> [test results](TEST-RESULTS.md) preserve the hardware observations.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -46,6 +50,22 @@ variable. Cmdline: `idle=nop nokaslr loglevel=8 console=tty0
 fbcon=nodefer`.
 
 ## Contents
+
+- `NEXT-TEST-AFTER-C5-2026-10-09.md` — normalized C5 findings and the next
+  steps for exception-context decoding and address translation.
+- `C5-CRASHLOG-TRANSCRIPTION-2026-10-09.json` — selected manually captured
+  bytes/values and source frame hashes.
+
+- `C5-SESSION-2026-10-09.md` — completed hardware result, hashes, validation,
+  staging and capture instructions; source delta in
+  `patches/linux-c4-to-c5-crashlog-diag.diff`.
+- `C5-REPEAT-SESSION-2026-10-09.md` — unchanged repeat and cross-run address
+  normalization; selected values and photo hashes in
+  `C5-REPEAT-TRANSCRIPTION-2026-10-09.json`.
+- `C4-VIDEO-REVIEW-2026-10-09.md` — verified reset/exception chronology and
+  limits of the video transcription.
+- `C4-SESSION-2026-10-09.md` — current payload hashes, staging/run commands,
+  corrected reset diagnostics, and required crashlog capture.
 
 - `FOLLOWUP-2026-10-07.md` — A/B results review, diagnostic corrections,
   and the original stage1 shutdown audit plan.

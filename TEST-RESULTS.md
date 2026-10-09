@@ -35,7 +35,21 @@ row with the observed result; a planned outcome is not a test result.
 | A-CONTROL2 | Audit stage1 -> unchanged stage2 A (repeat control) | FAIL as expected | bootid 1d0a2a64-ba58-4747-95a0-08f01b1d26ee; ANSBR 2; namespace ABSENT; FIRST CRASH [295]; FINAL RESET ERROR [837] -62; 2229 lines, 0 gaps; pager reached ~100 s after chainload |
 | CRASHLOG-DIAG-A2 | Audit stage1-cd2 -> stage2-crashlog-diag-a2 (kernel C2) | NO VERDICT (boot wedged, same as C) | SHAUD clean again (S12 +774ms, HOLD); Linux froze at post-helper-boot tail >2 min; never reached pager |
 | CRASHLOG-DIAG-A3 | Audit stage1-cd3 -> stage2-crashlog-diag-a3 (kernel C3) | boot completes to pager (ANS still FAIL as expected) | bootid b50aca37-aca1-494f-9894-20effdb53f06; crashlog unknown sections identified: 'Cnvr' 0x40 payload x2, 'Csta' 0x20 payload x4; boot iop ack ret=-62 as before |
+| CRASHLOG-DIAG-A4 | C3 + restored unknown-section content dump | Pager reached; ANS still FAIL | Photos: PAGE 1/76, ANSBR 2, namespace absent, first crash [299], final -62 [1026], 2492 lines/0 gaps. Video: 77 pages/2498 lines, reset snapshots ret=0, PC=d24c8 ESR=be000000 (SError), Ccst task=12, CasC/Crtk also present. Six Cnvr/Csta tail payloads captured (256 bytes); not the full unknown-section inventory. Footer diagnostic offset 0x4bc0, size 0x4be0. See C4-VIDEO-REVIEW-2026-10-09.md. |
+| CRASHLOG-DIAG-A5 | C4 + compact crashlog structure/version/footer diagnostics | Pager reached; ANS still FAIL | One send 13:04:03 MDT, C5-RUN-20261009T130403-0600. PAGE 1/79: ANSBR 2, namespace absent, first crash [325], final -62 [1061], 2581 lines/0 gaps. Ccst task 14 maps to power (C4 task 12 maps to Cmd); PC 19a4f0, ESR low32 be000000; CasC packed words repeat 49f008000; raw Cver RTKit_release-3514.0.15.release. Rejected 32-byte footer is CLHE, flags 0x0a misread as section length. Nikon capture retained; host exit 1 after handoff. See C5-SESSION-2026-10-09.md. |
+
+| CRASHLOG-DIAG-A5-REPEAT | Unchanged C5 after fresh LabOS firmware identity capture | Pager reached; ANS still FAIL | One send 14:24:17 MDT. Boot ID 9f24e8f4-a15d-4c48-a068-62eac9c56bc7; ANSBR 2, no namespace, first crash [299], final -62 [1063], 2587 lines/0 gaps. Cver base c0c000 vs first C5 184000; all ten normalized frames identical. Task 14 power, ESR low32 be000000, FAR 49f008000; l2c_adr upper bits differ. See C5-REPEAT-SESSION-2026-10-09.md. |
 | CHAIN-B2 / B3 | Repeat successful B on fresh boots | CONDITIONAL, NOT RUN | |
+
+Post-C5 acquisition is complete: all 185 collected-file checksums pass;
+Apple's 27.0.1 T8132 ANS container matches the signed SFR ANS digest.
+Fresh LabOS's chosen manifest is byte-identical to SFR/current and its
+live __TEXT matches the candidate except six startup metadata bytes.
+[The repeat](C5-REPEAT-SESSION-2026-10-09.md) validates C5's runtime
+mapping across two boots. Fault-address translation remains unresolved.
+No firmware was flashed; the complete-26.6.2 restore history is preserved.
+[Current plan](NEXT-TEST-AFTER-C5-2026-10-09.md): trace exception context and
+address mapping offline, then one targeted diagnostic. No C6 built/sent.
 
 ## Per-run record template
 

@@ -1,0 +1,135 @@
+{
+  "case": "CRASHLOG-DIAG-A5",
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C5-RUN-20261009T130403-0600",
+  "camera_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C5-CAMERA-20261009",
+  "scope": "Manual transcription of selected clear frames, not raw crash-buffer extraction or a complete kernel log.",
+  "summary": {
+    "page_count": 79,
+    "boot_id": "ad71000f-60e7-47df-8357-cf5ef1ed5367",
+    "branch": 2,
+    "cpu_control": "00000010",
+    "boot_status": "00000000",
+    "namespace": "absent",
+    "gpt": "not run",
+    "readtest": "not run",
+    "first_crash_sequence": 325,
+    "final_reset_sequence": 1061,
+    "final_error": -62,
+    "kmsg_lines": 2581,
+    "kmsg_gaps": 0
+  },
+  "exception": {
+    "psr": "600002c5",
+    "pc": "19a4f0",
+    "esr_reported": "25642912be000000",
+    "esr_low32": "be000000",
+    "far_reported": "49f008000",
+    "sp": "3dcf60",
+    "source": "sharp-review/sharp-016/frame-004.png",
+    "interpretation": "Low ESR bits classify SError; validate the firmware register layout and upper bits before treating the entire printed value as architectural ESR. FAR validity and address translation remain unproven."
+  },
+  "Ccst": {
+    "task": 14,
+    "aux": "30000000",
+    "frames": [
+      "000000000019a4f0",
+      "0000000000191838",
+      "000000000018cc58",
+      "00000000001a9ce4",
+      "00000000001be408",
+      "00000000001c28a0",
+      "00000000001bf370",
+      "00000000001a5ad8",
+      "00000000001a5978",
+      "00000000001a56bc"
+    ],
+    "payload_hex": "0e00000000000030f0a4190000000000381819000000000058cc180000000000e49c1a000000000008e41b0000000000a0281c000000000070f31b0000000000d85a1a000000000078591a0000000000bc561a00000000000000000000000000",
+    "source": "sharp-review/sharp-016/frame-010.png"
+  },
+  "CasC": {
+    "values_using_existing_m1n1_labels": {
+      "l2c_sts": "0000000000000080",
+      "l2c_adr": "030004049f008000",
+      "l2c_inf": "0000000100000002",
+      "lsu_sts": "238000049f008000",
+      "fed_sts": "0000000000000000",
+      "mmu_sts": "0000000000000000"
+    },
+    "payload_hex": "80000000000000000080009f0404000302000000010000000080009f040080230000000000000000000000000000000000000000000000000000000000000000",
+    "source": "sharp-review/sharp-017/frame-005.png",
+    "interpretation": "Packed fields; do not treat whole l2c_adr or lsu_sts as a host physical address. Low 40 bits of both repeat 0x49f008000."
+  },
+  "Cver": {
+    "payload_length": 144,
+    "captured_length": 64,
+    "payload_hex": "a100001021401ed5a17880d201401ed5004018000000000052544b69743a2052544b69745f72656c656173652d333531342e302e31352e72656c65617365202d",
+    "ascii_at_24": "RTKit: RTKit_release-3514.0.15.release -",
+    "printed_version": "",
+    "printed_uuid": "a100001021401ed5a17880d201401ed5",
+    "uuid_interpretation_validated": false,
+    "source": "sharp-review/sharp-016/frame-002.png"
+  },
+  "CLHE": {
+    "version": 771,
+    "declared_size": 19424,
+    "flags": 10,
+    "allocated_size": 32768,
+    "source": "sharp-review/sharp-015/frame-008.png"
+  },
+  "footer": {
+    "offset": 19392,
+    "remaining": 32,
+    "payload_hex": "45484c4303030000c04b00000a00000000000000000000000000000000000000",
+    "source": "sharp-review/sharp-009/frame-002.png"
+  },
+  "tasks_of_interest": [
+    {
+      "id": 12,
+      "name": "Cmd",
+      "flags": "0000",
+      "frames": 6
+    },
+    {
+      "id": 14,
+      "name": "power",
+      "flags": "8000",
+      "frames": 0
+    }
+  ],
+  "task_source": "sharp-review/segment-014/frame-001.png",
+  "correction": "C5 Ccst reports task 14, not C4 task 12. Initial focus on Cmd was based on C4 and superseded after reviewing C5 Ccst.",
+  "sources": [
+    {
+      "path": "sharp-review/sharp-016/frame-004.png",
+      "sha256": "c38cbd77e7b2886f386b14f9cdf3a096255cf18976e8cae131067269502361a2"
+    },
+    {
+      "path": "sharp-review/sharp-016/frame-010.png",
+      "sha256": "5dcdf8374b14b0903ffc7fe585edfc1070dd9ea4d4c725fbfb8955f4a8d270e1"
+    },
+    {
+      "path": "sharp-review/sharp-017/frame-005.png",
+      "sha256": "7408e51a9958252e3a48b8b0255a370b7d1eab145812503376e24646943e878f"
+    },
+    {
+      "path": "sharp-review/sharp-016/frame-002.png",
+      "sha256": "d98513c87fa1d2df58cdde034afa67ebc203bbf149412c58a4222490638f6a06"
+    },
+    {
+      "path": "sharp-review/sharp-015/frame-008.png",
+      "sha256": "7b39a25e348ea2a199cec2395de0c91b6b0e7c9b86e4a8e3e72846aa59d4fa2d"
+    },
+    {
+      "path": "sharp-review/sharp-009/frame-002.png",
+      "sha256": "664429885f3de94cf7a272dcf1e6346ff21b79727aed92268d25a7d473e1ce2a"
+    },
+    {
+      "path": "sharp-review/segment-014/frame-001.png",
+      "sha256": "296bc23b3ed8ce0f31bebcce4139528d14ccd3d59d5966a5c2717d366c7213fd"
+    },
+    {
+      "path": "sharp-review/sharp-009/frame-005.png",
+      "sha256": "70baf1a6153d70e4beee9374363851bd21e8cdb60630d5f5e1cb66b762a69883"
+    }
+  ]
+}

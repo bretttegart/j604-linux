@@ -1,0 +1,123 @@
+--- a/drivers/soc/apple/rtkit-crashlog.c
++++ b/drivers/soc/apple/rtkit-crashlog.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) The Asahi Linux Contributors
+  */
+ #include "rtkit-internal.h"
++#include <linux/unaligned.h>
+ 
+ #define FOURCC(a, b, c, d) \
+ 	(((u32)(a) << 24) | ((u32)(b) << 16) | ((u32)(c) << 8) | ((u32)(d)))
+@@ -183,6 +184,61 @@
+ 	dev_warn(rtk->dev, "\n");
+ }
+ 
++/* C5: bounded summaries of formats described by m1n1/fw/asc/crash.py.
++ * These read only the normal-memory shadow copy and change no RTKit state.
++ * Keep the original raw dump as evidence if the firmware layout differs.
++ */
++static void apple_rtkit_crashlog_diag_structured(struct apple_rtkit *rtk,
++					       u32 fourcc, u8 *p, size_t len)
++{
++	size_t i, pos = 0, count = 0;
++	u32 n;
++
++	if (fourcc == FOURCC('C', 'c', 's', 't') && len >= 8) {
++		dev_err(rtk->dev, "RTKDIAG Ccst task=%u aux=%08x bytes=%zx\n",
++			get_unaligned_le32(p), get_unaligned_le32(p + 4), len);
++		for (i = 8; len - i >= 8 && count < 64; i += 8, count++) {
++			u64 addr = get_unaligned_le64(p + i);
++
++			if (!addr)
++				break;
++			dev_err(rtk->dev, "RTKDIAG Ccst frame=%zu pc=%016llx\n",
++				count, addr);
++		}
++	} else if (fourcc == FOURCC('C', 'a', 's', 'C') && len >= 48) {
++		dev_err(rtk->dev,
++			"RTKDIAG CasC l2c_sts=%016llx l2c_adr=%016llx l2c_inf=%016llx\n",
++			get_unaligned_le64(p), get_unaligned_le64(p + 8),
++			get_unaligned_le64(p + 16));
++		dev_err(rtk->dev,
++			"RTKDIAG CasC lsu_sts=%016llx fed_sts=%016llx mmu_sts=%016llx\n",
++			get_unaligned_le64(p + 24), get_unaligned_le64(p + 32),
++			get_unaligned_le64(p + 40));
++	} else if (fourcc == FOURCC('C', 'r', 't', 'k')) {
++		while (len - pos >= 72 && count < 64) {
++			n = get_unaligned_le32(p + pos + 40);
++			if (n > (len - pos - 72) / 8) {
++				dev_err(rtk->dev,
++					"RTKDIAG Crtk invalid ptr_count=%u at payload+%zx\n",
++					n, pos);
++				break;
++			}
++			dev_err(rtk->dev,
++				"RTKDIAG Crtk task=%u flags=%04x ptr=%016llx frames=%u name=%.*s\n",
++				get_unaligned_le16(p + pos),
++				get_unaligned_le16(p + pos + 2),
++				get_unaligned_le64(p + pos + 16), n,
++				28, p + pos + 44);
++			pos += 72 + (size_t)n * 8;
++			count++;
++		}
++		if (pos != len)
++			dev_err(rtk->dev,
++				"RTKDIAG Crtk unparsed bytes=%zx at payload+%zx\n",
++				len - pos, pos);
++	}
++}
++
+ /*
+  * Diagnostic dump of an unknown crashlog section: validated payload
+  * length, printable-ASCII runs, and a bounded hex dump. Read-only; the
+@@ -199,6 +255,7 @@
+ 		"RTKDIAG crashlog unknown section '%c%c%c%c' fourcc=%08x offset=0x%zx payload_len=0x%zx\n",
+ 		(char)(fourcc >> 24), (char)(fourcc >> 16),
+ 		(char)(fourcc >> 8), (char)fourcc, fourcc, offset, len);
++	apple_rtkit_crashlog_diag_structured(rtk, fourcc, payload, len);
+ 
+ 	/* contiguous printable ASCII runs of at least 4 bytes */
+ 	run_start = 0;
+@@ -250,6 +307,11 @@
+ 			 header.fourcc);
+ 		return;
+ 	}
++	dev_err(rtk->dev,
++		"RTKDIAG CLHE version=%u declared=%x flags=%x allocated=%zx\n",
++		header.version, header.size, header.flags, size);
++	print_hex_dump(KERN_ERR, "RTKDIAG CLHE hex ", DUMP_PREFIX_OFFSET,
++		       16, 1, bfr, sizeof(header), false);
+ 
+ 	if (header.size > size) {
+ 		dev_warn(rtk->dev, "RTKit: Crashlog size (%x) is too large",
+@@ -275,6 +337,12 @@
+ 			dev_warn(rtk->dev,
+ 				 "RTKDIAG crashlog malformed section size 0x%x at offset 0x%zx (crashlog size 0x%zx)\n",
+ 				 section_size, offset, size);
++			dev_err(rtk->dev,
++				"RTKDIAG rejected fourcc=%08x remaining=%zx\n",
++				section_fourcc, size - offset);
++			print_hex_dump(KERN_ERR, "RTKDIAG rejected hex ",
++				       DUMP_PREFIX_OFFSET, 16, 1, bfr + offset,
++				       min_t(size_t, 32, size - offset), false);
+ 			break;
+ 		}
+ 
+@@ -287,6 +355,17 @@
+ 						      section_size);
+ 			break;
+ 		case APPLE_RTKIT_CRASHLOG_VERSION:
++			if (section_size - 16 >= 16) {
++				u8 *p = bfr + offset + 16;
++				size_t n = min_t(size_t, 128, section_size - 32);
++
++				dev_err(rtk->dev,
++					"RTKDIAG Cver uuid=%16phN version=%.*s payload_len=%x\n",
++					p, (int)n, p + 16, section_size - 16);
++			}
++			print_hex_dump(KERN_ERR, "RTKDIAG Cver hex ",
++				       DUMP_PREFIX_OFFSET, 16, 1, bfr + offset + 16,
++				       min_t(size_t, 64, section_size - 16), false);
+ 			apple_rtkit_crashlog_dump_version(
+ 				rtk, bfr + offset + 16, section_size);
+ 			break;

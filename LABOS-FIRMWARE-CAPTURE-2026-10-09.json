@@ -1,0 +1,67 @@
+{
+  "capture_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/LABOS-ADT-20261009T141804-0600",
+  "adt_sha256": "a64ec21f9fc087ff852cdea5336112fbb9d2afc552f48b4770b7c4b0953d2c98",
+  "boot_uuid": "BFADFFD5-AC55-403F-8A24-1217858C9FD7",
+  "boot_objects_path": "/BFADFFD5-AC55-403F-8A24-1217858C9FD7/boot/F739608175A3A1C3D67712DB665235B94A2F18DDCF8047E92418D4F42F3AE648257A136D9E11E3D947123524621B87B6",
+  "stage_one_tag": "mBoot-20457.1.29",
+  "stage_two_tag": "mBoot-18000.161.10.701.1",
+  "sfr_manifest_sha384": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+  "comparison": {
+    "capture_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/LABOS-ADT-20261009T141804-0600",
+    "live_text_sha256": "abc2261691bb8016a93f71b6ea516dd643fc8bb32d1c77c2febda88283620e1c",
+    "candidate_text_sha256": "13db2248a644ccdff4e1efa08e9bfa56e3dc8d4bf7f0703c7b98d636e5a4165a",
+    "text_exact_match": false,
+    "text_diff_bytes": 6,
+    "first_text_diff_offsets": [
+      16933,
+      16934,
+      16958,
+      16959,
+      16960,
+      16961
+    ],
+    "labos_manifest_matches_macos_manifest": true,
+    "mapping": {
+      "phys": "0x10000004000",
+      "iova": "0x0",
+      "remap": "0x10000004000",
+      "bytes": 2375680,
+      "unknown": 1,
+      "sha256": "abc2261691bb8016a93f71b6ea516dd643fc8bb32d1c77c2febda88283620e1c"
+    }
+  },
+  "changed_text_bytes": [
+    {
+      "offset": "0x4225",
+      "live": 192,
+      "ipsw": 0
+    },
+    {
+      "offset": "0x4226",
+      "live": 192,
+      "ipsw": 0
+    },
+    {
+      "offset": "0x423e",
+      "live": 148,
+      "ipsw": 0
+    },
+    {
+      "offset": "0x423f",
+      "live": 255,
+      "ipsw": 0
+    },
+    {
+      "offset": "0x4240",
+      "live": 3,
+      "ipsw": 0
+    },
+    {
+      "offset": "0x4241",
+      "live": 1,
+      "ipsw": 0
+    }
+  ],
+  "restore_history": "User reports full-Mac restore with UniversalMac_26.6.2_25G83_Restore.ipsw. Current metadata does not date later component changes or disprove that restore.",
+  "linux_payload_sent": false
+}

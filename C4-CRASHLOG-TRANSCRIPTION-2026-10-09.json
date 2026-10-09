@@ -1,0 +1,248 @@
+{
+  "test": "CRASHLOG-DIAG-A4",
+  "photos": [
+    {
+      "name": "PXL_20261009_175338055.MP.jpg",
+      "sha256": "efe21a6fd57b28ad177ebb3ab9d7fd584a5670d16a316822a5aaad5545a00488",
+      "bytes": 5230169
+    },
+    {
+      "name": "PXL_20261009_175351933.jpg",
+      "sha256": "62c978c6a0d35af6d07781977a774b5191747804dd1af80acf6a598338740f9c",
+      "bytes": 3843708
+    },
+    {
+      "name": "PXL_20261009_175457506.jpg",
+      "sha256": "2254e8cf69b9f5d14e75fe4fba4b07c60a1723b0881366a9b25ffcbf614f046f",
+      "bytes": 1658973
+    },
+    {
+      "name": "PXL_20261009_175500527.jpg",
+      "sha256": "7fde8c123bfcfd2aa650648244b84109fbf6e9d7e4e158f3c3141832011c30ea",
+      "bytes": 2251971
+    },
+    {
+      "name": "PXL_20261009_175505857.jpg",
+      "sha256": "b4474234c7686b218338c253fb8845ac00b5752cb9e945bd4d1cdf2dc0a6ea4c",
+      "bytes": 2306817
+    },
+    {
+      "name": "PXL_20261009_175512506.jpg",
+      "sha256": "c12dd7fbd817e73ec13d7bd7d07854baa1a2a429778a5347f89129b830eb21a3",
+      "bytes": 2373616
+    }
+  ],
+  "sections": [
+    {
+      "fourcc": "Cnvr",
+      "header_offset": "0x46e0",
+      "payload_length": "0x40",
+      "hex_rows": [
+        "00000000: 73 74 6f 72 61 67 65 2d 70 72 65 76 2d 61 73 73",
+        "00000010: 65 72 74 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        "00000020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        "00000030: 30 2c 30 2c 30 2c 30 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "nul_terminated_string_at_payload_0": "storage-prev-assert",
+      "nul_terminated_string_at_payload_48": "0,0,0,0"
+    },
+    {
+      "fourcc": "Cnvr",
+      "header_offset": "0x4730",
+      "payload_length": "0x40",
+      "hex_rows": [
+        "00000000: 73 74 6f 72 61 67 65 2d 70 72 65 76 2d 61 73 73",
+        "00000010: 65 72 74 2d 73 74 6f 72 65 64 00 00 00 00 00 00",
+        "00000020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+        "00000030: 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "nul_terminated_string_at_payload_0": "storage-prev-assert-stored",
+      "nul_terminated_string_at_payload_48": "0"
+    },
+    {
+      "fourcc": "Csta",
+      "header_offset": "0x4780",
+      "payload_length": "0x20",
+      "hex_rows": [
+        "00000000: 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00",
+        "00000010: 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "little_endian_u32_words": [
+        2,
+        0,
+        2,
+        0,
+        87,
+        0,
+        0,
+        0
+      ],
+      "little_endian_u64_words": [
+        2,
+        2,
+        87,
+        0
+      ]
+    },
+    {
+      "fourcc": "Csta",
+      "header_offset": "0x4b30",
+      "payload_length": "0x20",
+      "hex_rows": [
+        "00000000: 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00",
+        "00000010: 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "little_endian_u32_words": [
+        2,
+        0,
+        2,
+        0,
+        87,
+        0,
+        0,
+        0
+      ],
+      "little_endian_u64_words": [
+        2,
+        2,
+        87,
+        0
+      ]
+    },
+    {
+      "fourcc": "Csta",
+      "header_offset": "0x4b60",
+      "payload_length": "0x20",
+      "hex_rows": [
+        "00000000: 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00",
+        "00000010: 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "little_endian_u32_words": [
+        2,
+        0,
+        2,
+        0,
+        87,
+        0,
+        0,
+        0
+      ],
+      "little_endian_u64_words": [
+        2,
+        2,
+        87,
+        0
+      ]
+    },
+    {
+      "fourcc": "Csta",
+      "header_offset": "0x4b90",
+      "payload_length": "0x20",
+      "hex_rows": [
+        "00000000: 02 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00",
+        "00000010: 57 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+      ],
+      "source_photo": "PXL_20261009_175351933.jpg",
+      "provenance": "Manual transcription from photographed printk output; not a raw crash-buffer extraction.",
+      "little_endian_u32_words": [
+        2,
+        0,
+        2,
+        0,
+        87,
+        0,
+        0,
+        0
+      ],
+      "little_endian_u64_words": [
+        2,
+        2,
+        87,
+        0
+      ]
+    }
+  ],
+  "footer_diagnostic": {
+    "section_size": "0xa",
+    "offset": "0x4bc0",
+    "declared_crashlog_size": "0x4be0",
+    "remaining_bytes": 32,
+    "footer_bytes_captured": false
+  },
+  "limitations": [
+    "Section meanings unverified.",
+    "Main header, early assertion text and footer bytes are not in these six unknown-section payloads."
+  ],
+  "scope": "Six Cnvr/Csta tail records only; not a complete inventory of unknown sections.",
+  "video": {
+    "name": "PXL_20261009_180639619.mp4",
+    "sha256": "ffb8d01ba6f1ad32f027fec0952cea19f89c5226dfae08db5ab4b07b37345008",
+    "bytes": 1070373852,
+    "duration_seconds": 481.602889
+  },
+  "video_verified_observations": {
+    "reset_snapshots": [
+      {
+        "tag": "pre-assert",
+        "ret": 0,
+        "cpu": "00000000",
+        "boot_status": "00000000",
+        "elapsed_us": 0
+      },
+      {
+        "tag": "post-deassert",
+        "ret": 0,
+        "cpu": "00000000",
+        "boot_status": "00000000",
+        "elapsed_us": 1270
+      },
+      {
+        "tag": "post-cpu-run",
+        "ret": 0,
+        "cpu": "00000010",
+        "boot_status": "00000000",
+        "elapsed_us": 2477
+      }
+    ],
+    "exception": {
+      "pc": "0xd24c8",
+      "esr": "0xbe000000",
+      "far": "0x49f008000",
+      "sp": "0x314f80",
+      "psr": "0x600002c5",
+      "page": 20,
+      "note": "Printed FAR is not established as the address causing this asynchronous exception."
+    },
+    "additional_sections": [
+      {
+        "fourcc": "Ccst",
+        "offset": "0x440",
+        "payload_length": "0x60",
+        "page": 21,
+        "task_id": 12
+      },
+      {
+        "fourcc": "CasC",
+        "offset": "0x4b0",
+        "payload_length": "0x40",
+        "page": 22
+      },
+      {
+        "fourcc": "Crtk",
+        "offset": "0x1130",
+        "payload_length": "0x720",
+        "page": 33
+      }
+    ]
+  }
+}

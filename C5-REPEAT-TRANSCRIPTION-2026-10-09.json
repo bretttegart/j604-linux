@@ -1,0 +1,135 @@
+{
+  "case": "CRASHLOG-DIAG-A5-REPEAT",
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C5-RUN-20261009T142417-0600",
+  "camera_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C5-REPEAT-CAMERA-20261009T1427",
+  "scope": "Manual optical transcription of selected frames; not direct binary crash-buffer acquisition. OCR used only to locate pages.",
+  "summary": {
+    "page_count": 80,
+    "boot_id": "9f24e8f4-a15d-4c48-a068-62eac9c56bc7",
+    "branch": 2,
+    "cpu_control": "00000010",
+    "boot_status": "00000000",
+    "namespace": "absent",
+    "gpt": "not run",
+    "readtest": "not run",
+    "first_crash_sequence": 299,
+    "final_reset_sequence": 1063,
+    "final_error": -62,
+    "kmsg_lines": 2587,
+    "kmsg_gaps": 0
+  },
+  "exception": {
+    "psr": "600002c5",
+    "pc": "c224f0",
+    "esr_reported": "c71ce3b0be000000",
+    "esr_low32": "be000000",
+    "far_reported": "49f008000",
+    "sp": "e64f60",
+    "source": "review-002/frame-024.png"
+  },
+  "Ccst": {
+    "task": 14,
+    "aux": "30000000",
+    "frames": [
+      "0000000000c224f0",
+      "0000000000c19838",
+      "0000000000c14c58",
+      "0000000000c31ce4",
+      "0000000000c46408",
+      "0000000000c4a8a0",
+      "0000000000c47370",
+      "0000000000c2dad8",
+      "0000000000c2d978",
+      "0000000000c2d6bc"
+    ],
+    "payload_hex": "0e00000000000030f024c200000000003898c10000000000584cc10000000000e41cc300000000000864c40000000000a0a8c400000000007073c40000000000d8dac2000000000078d9c20000000000bcd6c200000000000000000000000000",
+    "source": "review-002/frame-033.png"
+  },
+  "CasC": {
+    "values_using_existing_m1n1_labels": {
+      "l2c_sts": "0000000000000080",
+      "l2c_adr": "030000049f008000",
+      "l2c_inf": "0000000100000002",
+      "lsu_sts": "238000049f008000",
+      "fed_sts": "0000000000000000",
+      "mmu_sts": "0000000000000000"
+    },
+    "payload_hex": "80000000000000000080009f0400000302000000010000000080009f040080230000000000000000000000000000000000000000000000000000000000000000",
+    "source": "review-002/frame-033.png"
+  },
+  "Cver": {
+    "payload_length": 144,
+    "captured_length": 64,
+    "payload_hex": "a100001021401ed5a17880d201401ed500c0c0000000000052544b69743a2052544b69745f72656c656173652d333531342e302e31352e72656c65617365202d",
+    "runtime_base_at_payload_16": "0xc0c000",
+    "ascii_at_24": "RTKit: RTKit_release-3514.0.15.release -",
+    "source": "review-002/frame-024.png"
+  },
+  "comparison": {
+    "first_c5_runtime_base": "0x184000",
+    "repeat_runtime_base": "0xc0c000",
+    "normalized_stack": [
+      "0x164f0",
+      "0xd838",
+      "0x8c58",
+      "0x25ce4",
+      "0x3a408",
+      "0x3e8a0",
+      "0x3b370",
+      "0x21ad8",
+      "0x21978",
+      "0x216bc"
+    ],
+    "normalized_stack_equal": true,
+    "normalized_pc": "0x164f0",
+    "normalized_sp": "0x258f60",
+    "nine_noninitial_frames_match_call_instructions": true,
+    "c4_runtime_base_known": false,
+    "fault_address_translation_validated": false,
+    "l2c_adr_changed_upper_bit_mask": "0x40000000000"
+  },
+  "sources": [
+    {
+      "path": "selected/cycle-2-page-001.jpg",
+      "sha256": "44e93fae5ad784a31c6dc8ad4cd19544761cc89c519d351eb6d40d2ec391e0c1"
+    },
+    {
+      "path": "review-002/frame-024.png",
+      "sha256": "6f8ebdb42eb07e5994cb62a83a523b851714c8888f3d053c7098a51c6b0a881f"
+    },
+    {
+      "path": "review-002/frame-033.png",
+      "sha256": "379966caaa80d79287ab064574108aca6e42b478d88906fdaba441933035ee20"
+    },
+    {
+      "path": "review-002/frame-020.png",
+      "sha256": "f4bf73be186650140e7dd4482696e131710f769fe6f60139220bb5e42ecbebbb"
+    },
+    {
+      "path": "review-003/frame-007.png",
+      "sha256": "d1836571a647ec18a2f7e45288644e32cdf37f6ed8d1386dbac25df08b04fa30"
+    }
+  ],
+  "CLHE": {
+    "version": 771,
+    "declared_size": 19392,
+    "flags": 10,
+    "allocated_size": 32768,
+    "source": "review-002/frame-020.png"
+  },
+  "tasks_of_interest": [
+    {
+      "id": 12,
+      "name": "Cmd",
+      "flags": "0000",
+      "frames": 6
+    },
+    {
+      "id": 14,
+      "name": "power",
+      "flags": "8000",
+      "frames": 0
+    }
+  ],
+  "task_source": "review-003/frame-007.png"
+}

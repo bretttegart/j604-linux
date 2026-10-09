@@ -1,5 +1,17 @@
 # Next test after SHUT-AUDIT — 2026-10-07
 
+> **Superseded after C/C2/C3:** The mid-reset MMIO snapshots in this original
+> plan caused a boot wedge. C3 removes them and reaches the pager. Continue
+> with [the C4 session](C4-SESSION-2026-10-09.md): C4 restored the bounded
+> crashlog content dump and reaches the pager. The
+> [video review](C4-VIDEO-REVIEW-2026-10-09.md) exposes an SError plus
+> additional structured sections; [C5](C5-SESSION-2026-10-09.md) decoded them
+> and reproduced the failure in task 14 (`power`). Continue with the
+> [post-C5 plan](NEXT-TEST-AFTER-C5-2026-10-09.md). Six tail payloads were captured in still photos;
+> they are not a complete unknown-section inventory.
+> No ANS register reads are valid here while reset
+> remains asserted.
+
 ## Decision
 
 The ANS shutdown handed off in a measured clean state, and stage2 A still
@@ -66,14 +78,17 @@ Add guarded logging to the RTKit crashlog parser and ANS cold-start path:
    message, or raw state useful for later decoding; do not label the section
    based only on its fourcc.
 3. Around the cold path in `drivers/nvme/host/apple.c`, log CPU_CONTROL and
-   BOOT_STATUS immediately before reset assert, after assert, after
-   `apple_rtkit_reinit`, after reset deassert, and after CPU RUN. Include
+   BOOT_STATUS immediately before reset assert, after successful reset
+   deassert, and after CPU RUN. **Do not read ANS MMIO between reset assert
+   and successful deassert: C/C2 wedged on those reads and C3 removed them.**
+   If a reset/reinit operation fails, log its return code without reading
+   the disabled block. Include
    each return code and a monotonic timestamp or elapsed delta. Log the INIT
    send return and the first RTKit crash notification in the same chronology.
    Do not add delays or alter reset, power, mailbox, buffer, or SART behavior.
 
 Create an isolated kernel C build and a newly named stage2, using the same
-m1n1 prefix as the audit build, the unchanged DTB and common initramfs, and
+stage2 m1n1 prefix as stage2 A, the unchanged DTB and common initramfs, and
 bootargs label `j604.test=CRASHLOG-DIAG-A`. Use the same stage1 audit binary
 and existing LINUXESP path from a fresh LabOS proxy. Verify component hashes
 and record the exact source diff and config. Do not overwrite the existing
