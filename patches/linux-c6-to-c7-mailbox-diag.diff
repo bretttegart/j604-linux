@@ -1,0 +1,88 @@
+--- a/drivers/soc/apple/rtkit-crashlog.c
++++ b/drivers/soc/apple/rtkit-crashlog.c
+@@ -105,23 +105,52 @@
+ }
+ 
+ static void apple_rtkit_crashlog_dump_mailbox(struct apple_rtkit *rtk, u8 *bfr,
+-					      size_t size)
+-{
+-	u32 type, index, i;
+-	size_t n_messages;
+-	struct apple_rtkit_crashlog_mbox_entry entry;
+-
+-	memcpy(&type, bfr + 16, 4);
+-	memcpy(&index, bfr + 24, 4);
+-	n_messages = (size - 28) / sizeof(entry);
+-
+-	dev_warn(rtk->dev, "RTKit: Mailbox history (type = %d, index = %d)",
+-		 type, index);
+-	for (i = 0; i < n_messages; ++i) {
+-		memcpy(&entry, bfr + 28 + i * sizeof(entry), sizeof(entry));
+-		dev_warn(rtk->dev, "RTKit:  #%03d@%08x: %016llx %016llx", i,
+-			 entry.timestamp, entry.msg0, entry.msg1);
+-	}
++					      size_t size, size_t offset)
++{
++	size_t i, n_messages, trailing;
++	const size_t entry_size = sizeof(struct apple_rtkit_crashlog_mbox_entry);
++
++	/* C7: normal-memory capture only; size excludes the section header.
++	 * Asahi m1n1 CrashCmbx: four header words, type, unknown, index,
++	 * then 24-byte endpoint/message/timestamp/padding records.
++	 * Preserve storage order and every raw byte; type/index semantics
++	 * and the ring's chronological ordering are not assumed here.
++	 */
++	dev_err(rtk->dev,
++		"RTKDIAG Cmbx raw offset=0x%zx payload_len=0x%zx\n",
++		offset, size);
++	print_hex_dump(KERN_ERR, "RTKDIAG Cmbx raw ", DUMP_PREFIX_OFFSET,
++		       16, 1, bfr, size, false);
++
++	if (size < 28) {
++		dev_err(rtk->dev,
++			"RTKDIAG Cmbx truncated header bytes=0x%zx need=0x1c\n",
++			size);
++		return;
++	}
++
++	n_messages = (size - 28) / entry_size;
++	trailing = (size - 28) % entry_size;
++	dev_err(rtk->dev,
++		"RTKDIAG Cmbx hdr=%08x %08x %08x %08x\n",
++		get_unaligned_le32(bfr), get_unaligned_le32(bfr + 4),
++		get_unaligned_le32(bfr + 8), get_unaligned_le32(bfr + 12));
++	dev_err(rtk->dev,
++		"RTKDIAG Cmbx type=%u unk=%08x index=%u entries=%zu trailing=0x%zx\n",
++		get_unaligned_le32(bfr + 16), get_unaligned_le32(bfr + 20),
++		get_unaligned_le32(bfr + 24), n_messages, trailing);
++	for (i = 0; i < n_messages; i++) {
++		u8 *entry = bfr + 28 + i * entry_size;
++
++		dev_err(rtk->dev,
++			"RTKDIAG Cmbx slot=%zu ts=%08x ep=%016llx msg=%016llx pad=%08x\n",
++			i, get_unaligned_le32(entry + 16),
++			get_unaligned_le64(entry), get_unaligned_le64(entry + 8),
++			get_unaligned_le32(entry + 20));
++	}
++	dev_err(rtk->dev,
++		"RTKDIAG Cmbx end offset=0x%zx decoded=%zu payload_len=0x%zx\n",
++		offset, n_messages, size);
+ }
+ 
+ static void apple_rtkit_crashlog_dump_regs(struct apple_rtkit *rtk, u8 *bfr,
+@@ -417,8 +446,14 @@
+ 				rtk, bfr + offset + 16, section_size);
+ 			break;
+ 		case APPLE_RTKIT_CRASHLOG_MBOX:
++			dev_err(rtk->dev,
++				"RTKDIAG Cmbx section offset=0x%zx section_len=0x%x\n",
++				offset, section_size);
++			print_hex_dump(KERN_ERR, "RTKDIAG Cmbx section-header ",
++				       DUMP_PREFIX_OFFSET, 16, 1, bfr + offset,
++				       16, false);
+ 			apple_rtkit_crashlog_dump_mailbox(
+-				rtk, bfr + offset + 16, section_size);
++				rtk, bfr + offset + 16, section_size - 16, offset);
+ 			break;
+ 		case APPLE_RTKIT_CRASHLOG_TIME:
+ 			apple_rtkit_crashlog_dump_time(rtk, bfr + offset + 16,

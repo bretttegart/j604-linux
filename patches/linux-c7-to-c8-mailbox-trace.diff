@@ -1,0 +1,248 @@
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -5,6 +5,108 @@
+  */
+ 
+ #include "rtkit-internal.h"
++#include <linux/ktime.h>
++#include <linux/of.h>
++#include <linux/spinlock.h>
++
++/* C8 diagnostic only: no allocation or printk in the mailbox hooks. */
++#define APPLE_RTKIT_DIAG_TRACE_CAPACITY 1024
++
++enum apple_rtkit_diag_event {
++	APPLE_RTKIT_DIAG_INIT,
++	APPLE_RTKIT_DIAG_RX,
++	APPLE_RTKIT_DIAG_TX_BEGIN,
++	APPLE_RTKIT_DIAG_TX_END,
++	APPLE_RTKIT_DIAG_REINIT_BEGIN,
++	APPLE_RTKIT_DIAG_REINIT_END,
++};
++
++struct apple_rtkit_diag_record {
++	u64 seq, ns, msg0, msg1, tag;
++	int aux;
++	enum apple_rtkit_diag_event event;
++};
++
++struct apple_rtkit_diag_trace {
++	spinlock_t lock;
++	bool open;
++	u64 total;
++	struct apple_rtkit_diag_record records[APPLE_RTKIT_DIAG_TRACE_CAPACITY];
++};
++
++static u64 apple_rtkit_diag_record(struct apple_rtkit *rtk,
++				  enum apple_rtkit_diag_event event,
++				  u64 msg0, u64 msg1, u64 tag, int aux)
++{
++	struct apple_rtkit_diag_trace *trace = rtk->diag_trace;
++	struct apple_rtkit_diag_record *record;
++	unsigned long flags;
++	u64 seq = U64_MAX;
++
++	if (!trace)
++		return seq;
++	spin_lock_irqsave(&trace->lock, flags);
++	if (!trace->open)
++		goto unlock;
++	seq = trace->total++;
++	if (seq >= APPLE_RTKIT_DIAG_TRACE_CAPACITY)
++		goto unlock;
++	record = &trace->records[seq];
++	record->seq = seq;
++	record->ns = ktime_get_ns();
++	record->msg0 = msg0;
++	record->msg1 = msg1;
++	record->tag = tag;
++	record->aux = aux;
++	record->event = event;
++unlock:
++	spin_unlock_irqrestore(&trace->lock, flags);
++	return seq;
++}
++
++void apple_rtkit_diag_trace_dump(struct apple_rtkit *rtk, const char *phase,
++			       int result)
++{
++	static const char * const names[] = {
++		"INIT", "RX", "TX_BEGIN", "TX_END", "REINIT_BEGIN", "REINIT_END",
++	};
++	struct apple_rtkit_diag_trace *trace = rtk->diag_trace;
++	unsigned long flags;
++	u64 total, count, cutoff, i;
++
++	if (!trace) {
++		dev_err(rtk->dev, "RTKTRACE unavailable phase=%s ret=%d\n",
++			phase, result);
++		return;
++	}
++	spin_lock_irqsave(&trace->lock, flags);
++	if (!trace->open) {
++		spin_unlock_irqrestore(&trace->lock, flags);
++		return;
++	}
++	trace->open = false;
++	total = trace->total;
++	count = min_t(u64, total, APPLE_RTKIT_DIAG_TRACE_CAPACITY);
++	cutoff = ktime_get_ns();
++	spin_unlock_irqrestore(&trace->lock, flags);
++
++	/* Frozen records are immutable. Never print while holding the lock. */
++	dev_err(rtk->dev,
++		"RTKTRACE begin v=1 phase=%s ret=%d cap=%d count=%llu total=%llu dropped=%llu cutoff_ns=%llu\n",
++		phase, result, APPLE_RTKIT_DIAG_TRACE_CAPACITY, count, total,
++		total - count, cutoff);
++	for (i = 0; i < count; i++) {
++		const struct apple_rtkit_diag_record *r = &trace->records[i];
++
++		dev_err(rtk->dev,
++			"RTKTRACE seq=%llu ns=%llu event=%s ep=%02x msg0=%016llx msg1=%016llx tag=%llu aux=%d\n",
++			r->seq, r->ns, names[r->event], (u8)r->msg1,
++			r->msg0, r->msg1, r->tag, r->aux);
++	}
++	dev_err(rtk->dev, "RTKTRACE end count=%llu dropped=%llu\n",
++		count, total - count);
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_diag_trace_dump);
+ 
+ enum {
+ 	APPLE_RTKIT_PWR_STATE_OFF = 0x00, /* power off, cannot be restarted */
+@@ -631,6 +733,8 @@
+ 	 * afterwards.
+ 	 */
+ 	dma_rmb();
++	apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_RX, msg.msg0, msg.msg1,
++				0, 0);
+ 
+ 	if (!test_bit(ep, rtk->endpoints))
+ 		dev_warn(rtk->dev,
+@@ -660,6 +764,8 @@
+ 		.msg0 = message,
+ 		.msg1 = ep,
+ 	};
++	u64 trace_tag;
++	int ret;
+ 
+ 	if (rtk->crashed) {
+ 		dev_warn(rtk->dev,
+@@ -681,7 +787,12 @@
+ 	 */
+ 	dma_wmb();
+ 
+-	return apple_mbox_send(rtk->mbox, msg, atomic);
++	trace_tag = apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_TX_BEGIN,
++					   msg.msg0, msg.msg1, 0, atomic);
++	ret = apple_mbox_send(rtk->mbox, msg, atomic);
++	apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_TX_END, msg.msg0, msg.msg1,
++				trace_tag, ret);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_send_message);
+ 
+@@ -733,6 +844,17 @@
+ 	rtk->cookie = cookie;
+ 	rtk->ops = ops;
+ 
++	if (of_machine_is_compatible("apple,j604") &&
++	    of_device_is_compatible(dev->of_node, "apple,t8132-nvme-ans2")) {
++		rtk->diag_trace = kvzalloc(sizeof(*rtk->diag_trace), GFP_KERNEL);
++		if (rtk->diag_trace) {
++			spin_lock_init(&rtk->diag_trace->lock);
++			rtk->diag_trace->open = true;
++			apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_INIT,
++						0, 0, 0, 0);
++		}
++	}
++
+ 	init_completion(&rtk->epmap_completion);
+ 	init_completion(&rtk->iop_pwr_ack_completion);
+ 	init_completion(&rtk->ap_pwr_ack_completion);
+@@ -769,6 +891,7 @@
+ destroy_wq:
+ 	destroy_workqueue(rtk->wq);
+ free_rtk:
++	kvfree(rtk->diag_trace);
+ 	kfree(rtk);
+ 	return ERR_PTR(ret);
+ }
+@@ -790,6 +913,9 @@
+ 
+ int apple_rtkit_reinit(struct apple_rtkit *rtk)
+ {
++	int ret;
++
++	apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_REINIT_BEGIN, 0, 0, 0, 0);
+ 	/* make sure we don't handle any messages while reinitializing */
+ 	apple_mbox_stop(rtk->mbox);
+ 	flush_workqueue(rtk->wq);
+@@ -817,7 +943,9 @@
+ 	rtk->iop_power_state = APPLE_RTKIT_PWR_STATE_OFF;
+ 	rtk->ap_power_state = APPLE_RTKIT_PWR_STATE_OFF;
+ 
+-	return apple_mbox_start(rtk->mbox);
++	ret = apple_mbox_start(rtk->mbox);
++	apple_rtkit_diag_record(rtk, APPLE_RTKIT_DIAG_REINIT_END, 0, 0, 0, ret);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_reinit);
+ 
+@@ -1026,6 +1154,7 @@
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+ 
+ 	kfree(rtk->syslog_msg_buffer);
++	kvfree(rtk->diag_trace);
+ 	kfree(rtk);
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_free);
+--- a/drivers/soc/apple/rtkit-internal.h
++++ b/drivers/soc/apple/rtkit-internal.h
+@@ -21,6 +21,8 @@
+ 
+ #define APPLE_RTKIT_APP_ENDPOINT_START 0x20
+ #define APPLE_RTKIT_MAX_ENDPOINTS 0x100
++
++struct apple_rtkit_diag_trace;
+ 
+ struct apple_rtkit {
+ 	void *cookie;
+@@ -53,6 +55,7 @@
+ 	size_t syslog_msg_size;
+ 
+ 	struct workqueue_struct *wq;
++	struct apple_rtkit_diag_trace *diag_trace;
+ };
+ 
+ void apple_rtkit_crashlog_dump(struct apple_rtkit *rtk, u8 *bfr, size_t size);
+--- a/include/linux/soc/apple/rtkit.h
++++ b/include/linux/soc/apple/rtkit.h
+@@ -105,6 +105,10 @@
+  */
+ void apple_rtkit_free(struct apple_rtkit *rtk);
+ 
++/* C8 diagnostic: freeze and dump the bounded J604 ANS boot trace once. */
++void apple_rtkit_diag_trace_dump(struct apple_rtkit *rtk, const char *phase,
++			       int result);
++
+ /*
+  * Reinitialize internal structures. Must only be called with the co-processor
+  * is held in reset.
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -1331,6 +1331,7 @@
+ 	nvme_start_ctrl(&anv->ctrl);
+ 
+ 	dev_dbg(anv->dev, "ANS boot and NVMe init completed.");
++	apple_rtkit_diag_trace_dump(anv->rtk, "nvme-ready", 0);
+ 	return;
+ 
+ out_remove_sq:
+@@ -1338,6 +1339,7 @@
+ out_remove_cq:
+ 	apple_nvme_remove_cq(anv);
+ out:
++	apple_rtkit_diag_trace_dump(anv->rtk, "reset-error", ret);
+ 	dev_warn(anv->ctrl.device, "Reset failure status: %d\n", ret);
+ 	nvme_change_ctrl_state(&anv->ctrl, NVME_CTRL_DELETING);
+ 	nvme_get_ctrl(&anv->ctrl);

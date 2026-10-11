@@ -11,15 +11,22 @@ LabOS restore files 26.7.1, and SFR/current 27.0.1. Fresh LabOS uses the
 same captured SFR ANS manifest. The timing of component changes remains
 unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
-> **Start here (Oct 9):** [C6](C6-SESSION-2026-10-09.md) reaches the pager
+> **Start here (Oct 10):** [C7](C7-SESSION-2026-10-10.md) was built, staged, and **booted once**
+> after the owner explicitly authorized the send. It reproduces the ANS crash. It captures complete raw and decoded Cmbx
+> mailbox-history sections using Asahi's documented layout. Only the
+> crashlog reader changes from C6; the owner copies the payload to
+> LINUXESP and is present with the console camera for the boot.
+> [C6](C6-SESSION-2026-10-09.md) reaches the pager
 > and reproduces the cold ANS failure, but completes the diagnostic
 > payload capture: full Crg8 (0x350 B) and Cver (0x90 B). The
 > [full Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md) verifies the reader
 > layout, finds no hidden interrupted context in `unk[64]`, leaves FAR
 > `0x49f008000` untranslated, and keeps the firmware version-split as an
-> observation rather than a proven cause. The next single datum would be
-> the crashlog mailbox-history section (IOP power-state request/ack);
-> it is parked as of Oct 9. No C7 has been built or sent.
+> observation rather than a proven cause. C7 captured both mailbox-history
+> sections and confirms a fresh HELLO/endpoint handshake followed by the
+> same crash. No management-protocol mismatch is demonstrated; power timing
+> versus firmware/state remains unresolved. The next discriminator is a
+> successful tethered-path comparison. No firmware intervention occurred.
 > [Firmware acquisition and live LabOS capture](FIRMWARE-INVENTORY-2026-10-09.md)
 > verify the matching 27-family ANS code image; running macOS/stage-two
 > remains 26.6.2. [C4 video findings](C4-VIDEO-REVIEW-2026-10-09.md) and
@@ -55,8 +62,8 @@ fbcon=nodefer`.
 
 ## Contents
 
-- `NEXT-TEST-AFTER-C5-2026-10-09.md` — after-C5 plan; its Crg8/Cver capture
-  items are completed by C6 and the mailbox-history datum is parked.
+- `NEXT-TEST-AFTER-C5-2026-10-09.md` — historical after-C5 plan; its Crg8/Cver
+  capture items are completed by C6 and C7 adds mailbox-history capture.
 - `C5-CRASHLOG-TRANSCRIPTION-2026-10-09.json` — selected manually captured
   bytes/values and source frame hashes.
 
@@ -68,6 +75,10 @@ fbcon=nodefer`.
   `C5-REPEAT-TRANSCRIPTION-2026-10-09.json`.
 - `C6-SESSION-2026-10-09.md` — diagnostic-only C6 run: same ANS failure,
   complete raw Crg8/Cver capture, artifacts, staging, and hardware result.
+- `C7-SESSION-2026-10-10.md` — diagnostic-only C7 mailbox-history build,
+  verified artifacts, hardware run, and mailbox-history capture/decision criteria;
+  complete manual transcription in `C7-MAILBOX-TRANSCRIPTION-2026-10-10.json`. Delta: `patches/linux-c6-to-c7-mailbox-diag.diff`.
+- `C8-SESSION-2026-10-10.md` — bounded live mailbox trace and matched tethered comparison; delta in `patches/linux-c7-to-c8-mailbox-trace.diff`.
 - `CRG8-ANALYSIS-2026-10-09.md` — full Crg8 layout/register/FAR analysis;
   no hidden interrupted context, FAR untranslated, conclusion inconclusive.
 - `C4-VIDEO-REVIEW-2026-10-09.md` — verified reset/exception chronology and
