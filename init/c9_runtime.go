@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,6 +23,27 @@ func parseRuntimeLog(msg string, r *report) {
 	msg = strings.TrimSpace(strings.SplitN(msg, "\n", 2)[0])
 	if strings.HasPrefix(msg, "C9-R-BARRIER ") {
 		r.Marker = msg
+	}
+	if strings.Contains(msg, "RTKDIAG mgmt tx type=") {
+		fields := strings.Fields(msg)
+		typ, request := "", ""
+		for _, field := range fields {
+			if strings.HasPrefix(field, "type=") {
+				typ = strings.TrimPrefix(field, "type=")
+			}
+			if strings.HasPrefix(field, "msg=") {
+				request = strings.TrimPrefix(field, "msg=")
+			}
+		}
+		value, parseErr := strconv.ParseUint(request, 16, 64)
+		r.MgmtSleepPending = typ == "6" && parseErr == nil && value&0xffff == 1
+	}
+	if strings.Contains(msg, "RTKDIAG mgmt tx ret=") && r.MgmtSleepPending {
+		_, result, _ := strings.Cut(msg, "RTKDIAG mgmt tx ret=")
+		if fields := strings.Fields(result); len(fields) != 0 {
+			r.IOPSleepSend = fields[0]
+		}
+		r.MgmtSleepPending = false
 	}
 	if strings.Contains(msg, "nvme-apple "+ansDevice+":") && strings.Contains(msg, "ANSRM ") {
 		if p := strings.Index(msg, "ANSRM "); p >= 0 {

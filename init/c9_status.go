@@ -53,6 +53,8 @@ type report struct {
 	Teardown          string
 	APSleepAck        bool
 	IOPSleepAck       bool
+	IOPSleepSend      string
+	MgmtSleepPending  bool
 	ShutdownPrepare   string
 	CPUControl        uint64
 	BootStatus        uint64
@@ -398,7 +400,11 @@ func lines(r report) []string {
 		if r.CPUStateObserved {
 			cpu = fmt.Sprintf("%08X BOOT %08X", r.CPUControl, r.BootStatus)
 		}
-		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck + " IOP SLEEP ACK " + iopAck, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+		sleepTx := r.IOPSleepSend
+		if sleepTx == "" {
+			sleepTx = "NA"
+		}
+		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck, "IOP SLEEP TX " + sleepTx + " ACK " + iopAck, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 	}
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }

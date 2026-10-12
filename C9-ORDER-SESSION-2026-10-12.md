@@ -50,6 +50,27 @@ uses the same kernel and is ready for a fresh proxy run. The first run's
 initramfs and screen capture are preserved under
 `/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/`.
 
+## Second run
+
+The expanded initramfs was run at 14:07 MDT from a fresh proxy. The handoff
+returned 0, with no m1n1 NVMe init and unchanged payloads. Linux again matched
+all five warm reads and unbound once. The screen recorded AP QUIESCED ACK
+`YES`, IOP SLEEP ACK `NO`, and shutdown prepare return `-62` (`-ETIME`). The
+CPU_CONTROL readback was zero; RTKit reinit was not called because the IOP
+sleep request timed out. The power-domain detach reached its end marker.
+The ANS crash flag was set, so the verifier stopped before bind. Log capture
+was complete: zero sequence gaps, zero retained-message overflow and no
+reader error.
+
+This run locates the stop before the proposed buffer-release ordering can
+take effect. It does not test whether stopping the CPU before buffer release
+changes the crash outcome, because `apple_rtkit_shutdown_prepare()` returned
+before RTKit reinit. The code waits one second for each RTKit power ACK, and
+the source maps a missing IOP ACK to `-ETIME`. The next small diagnostic adds
+the management-send return for the IOP SLEEP request, to tell whether the
+request was accepted by the mailbox before waiting for the ACK. Its initramfs
+is ready under the same artifact directory; the kernel image is unchanged.
+
 Artifacts and hashes are recorded in
 [`C9-ORDER-RESULTS-2026-10-12.json`](C9-ORDER-RESULTS-2026-10-12.json) and
 the exact source delta is

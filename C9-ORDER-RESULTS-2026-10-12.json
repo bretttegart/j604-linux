@@ -1,7 +1,7 @@
 {
   "date": "2026-10-12",
   "cell": "C9 R (ordering diagnostic)",
-  "status": "FIRST RUN COMPLETE; SECOND DIAGNOSTIC INITRAMFS PREPARED, AWAITING FRESH PROXY",
+  "status": "TWO ORDERING RUNS COMPLETE; THIRD DIAGNOSTIC INITRAMFS PREPARED, AWAITING FRESH PROXY",
   "experiment": "R-order: warm reads, one ANS unbind; AP QUIESCED/IOP SLEEP, CPU stop, RTKit reinit/buffer release, power-domain detach; then bind and verify reads",
   "kernel_change": "Targeted remove path stops ANS coprocessor before RTKit reinit and shared-buffer release; logs phase returns and CPU/boot state. Other shutdown/suspend paths unchanged.",
   "panel_fields": [
@@ -23,9 +23,9 @@
       "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01"
     },
     "initramfs": {
-      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build-v2/initramfs.cpio.gz",
-      "bytes": 1016581,
-      "sha256": "2eb806cc1229a6a0b8eaa6da3332f56e736829ac3e1b9b6bf4d4a00fe9d90dd6"
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build-v3/initramfs.cpio.gz",
+      "bytes": 1017198,
+      "sha256": "3cd810a61e64d02cec6583429fac342a5511b81fcfe1d0545e12759dcbc61c20"
     },
     "m1n1": {
       "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
@@ -143,9 +143,10 @@
     "required_namespace_id": 1,
     "all_ans_namespaces_checked_for_mounts_and_holders": true,
     "log_marker_newline_terminated": true,
-    "runtime_log_retained_capacity": 1024
+    "runtime_log_retained_capacity": 1024,
+    "iop_sleep_request_tx_result_visible": true
   },
-  "runtime_source_sha256": "8ab72f95cbfa62f53d90507d0bcd5f0e0b5c76e15359d58a99d33481dbe63988",
+  "runtime_source_sha256": "a1ca72c41451adac63b7bef45e81fc398edb67cc9543b3a4bf78741842346ea7",
   "first_run": {
     "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN",
     "captured_at": "2026-10-12T14:01 MDT",
@@ -174,11 +175,43 @@
     "interpretation": "retention-cap failure prevented the verifier reaching its post-unbind crash gate; crash notification was observed, but ACK/shutdown/CPU/reinit return values were not displayed"
   },
   "second_run": {
-    "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN2",
+    "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN2-RESULT",
+    "captured_at": "2026-10-12T14:07 MDT",
+    "boot_status": "BOOT_REQUEST_ACKNOWLEDGED",
+    "kboot_return": 0,
+    "m1n1_init_events": 0,
+    "payload_readback_unchanged": true,
+    "before_reads": "5/5 match",
+    "after_reads": "0/5; no rebind attempted",
+    "unbind": "OK",
+    "bind": "not attempted",
+    "panel": {
+      "status": "FAIL",
+      "ans_branch": "3",
+      "ans_crash": "YES",
+      "reset": "NONE",
+      "namespace": "NO after intentional unbind",
+      "ap_quiesced_ack": "YES",
+      "iop_sleep_ack": "NO",
+      "shutdown_prepare_return": -62,
+      "cpu_control": "0x00000000",
+      "boot_status": "0x00000000",
+      "rtkit_reinit": "not called",
+      "teardown": "GENPD END",
+      "log_gaps": 0,
+      "runtime_log_dropped": 0,
+      "log_reader_error": "NONE",
+      "phase": "CHECK UNBOUND",
+      "error": "CRASH DURING UNBIND"
+    },
+    "frame_sha256": "36d819af15f44f2bb912e3797dc2b7f8dea95b25cff31f507a4e77a01ea82570",
+    "interpretation": "AP QUIESCED was acknowledged, but no IOP SLEEP ACK was observed and shutdown_prepare returned -ETIME (-62). CPU stop ran; RTKit reinit was skipped. The verifier halted before bind on the crash flag."
+  },
+  "third_run": {
+    "manifest": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN3-MANIFEST.json",
+    "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN3-RESULT",
     "status": "PREPARED, AWAITING FRESH PROXY",
-    "change": "1024 retained runtime messages and explicit AP/IOP sleep ACK, shutdown return, CPU_CONTROL/BOOT_STATUS, RTKit reinit return, and detach screen fields",
-    "kernel": "same tested ordering image",
-    "runtime_source_sha256": "8ab72f95cbfa62f53d90507d0bcd5f0e0b5c76e15359d58a99d33481dbe63988",
-    "initramfs_sha256": "2eb806cc1229a6a0b8eaa6da3332f56e736829ac3e1b9b6bf4d4a00fe9d90dd6"
+    "change": "screen includes IOP SLEEP management-send return to distinguish send failure from ACK timeout",
+    "kernel": "same ordered-remove diagnostic image"
   }
 }
