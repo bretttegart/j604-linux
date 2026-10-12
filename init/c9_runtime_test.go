@@ -342,3 +342,21 @@ func TestTraceRingPostSleepWindow(t *testing.T) {
 		t.Fatalf("post-sleep ACK not credited: %+v", r)
 	}
 }
+
+func TestBootIOPAckStateRecorded(t *testing.T) {
+	r := &report{Runtime: true}
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKDIAG rx IOP_PWR_ACK msg=0070000000000020 new_state=0x20", r)
+	if r.BootIOPAck != "0X20" {
+		t.Fatalf("boot IOP ACK state not recorded: %q", r.BootIOPAck)
+	}
+	if r.IOPSleepAck {
+		t.Fatalf("boot ACK must not set IOPSleepAck")
+	}
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKDIAG rx IOP_PWR_ACK msg=0070000000000001 new_state=0x1", r)
+	if !r.IOPSleepAck {
+		t.Fatalf("sleep ACK not recorded")
+	}
+	if r.BootIOPAck != "0X20" {
+		t.Fatalf("sleep ACK overwrote boot state: %q", r.BootIOPAck)
+	}
+}

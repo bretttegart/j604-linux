@@ -77,6 +77,9 @@ func parseRuntimeLog(msg string, r *report) {
 			if state == "0x1" {
 				r.IOPSleepAck = true
 			}
+			if state != "0x1" && r.BootIOPAck == "" {
+				r.BootIOPAck = strings.ToUpper(state)
+			}
 		}
 	}
 	if strings.HasPrefix(msg, "nvme nvme") {
@@ -450,6 +453,12 @@ func logBarrier(stage string) error {
 	}
 }
 
+func skipBeforeReads() bool {
+	mu.Lock()
+	defer mu.Unlock()
+	return current.SkipReads
+}
+
 func runtimePhase(s string) { mu.Lock(); current.Phase = s; mu.Unlock() }
 
 func directRuntime(ns runtimeNamespace, before bool) error {
@@ -513,7 +522,12 @@ func testRuntime() {
 			}
 			return
 		}},
-		{"BEFORE READS", func() error { return directRuntime(before, true) }},
+		{"BEFORE READS", func() error {
+			if skipBeforeReads() {
+				return nil
+			}
+			return directRuntime(before, true)
+		}},
 		{"CHECK BEFORE", func() error {
 			if err := logBarrier("before"); err != nil {
 				return err

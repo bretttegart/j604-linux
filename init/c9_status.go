@@ -71,6 +71,8 @@ type report struct {
 	SleepAckRing      bool
 	CrashDeltaSeen    bool
 	CrashDeltaMs      int64
+	BootIOPAck        string
+	SkipReads         bool
 }
 
 var mu sync.Mutex
@@ -426,6 +428,10 @@ func lines(r report) []string {
 				rxLine += fmt.Sprintf(" +%d", extra)
 			}
 		}
+		bootAck := r.BootIOPAck
+		if bootAck == "" {
+			bootAck = "NA"
+		}
 		ringLine := "RING ACK NO"
 		if r.SleepAckRing {
 			ringLine = "RING ACK YES"
@@ -433,7 +439,7 @@ func lines(r report) []string {
 		if r.CrashDeltaSeen {
 			ringLine += fmt.Sprintf(" CRASH +%dMS", r.CrashDeltaMs)
 		}
-		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck, "IOP SLEEP TX " + sleepTx + " ACK " + iopAck, traceLine, rxLine, ringLine, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck, "IOP SLEEP TX " + sleepTx + " ACK " + iopAck, "BOOT IOP ACK " + bootAck, traceLine, rxLine, ringLine, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 	}
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }
@@ -451,7 +457,7 @@ func main() {
 			cell = strings.ReplaceAll(value, "-", " ")
 		}
 	}
-	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R"}
+	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R" || cell == "C9 E1", SkipReads: cell == "C9 E1"}
 	go captureLog()
 	if current.Runtime {
 		go testRuntime()
