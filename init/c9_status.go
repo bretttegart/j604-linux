@@ -563,7 +563,43 @@ func lines(r report) []string {
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }
 
+// The shell image uses the same verified direct-read implementation without
+// mounting filesystems, changing power state, or taking over the framebuffer.
+func standaloneStorageCheck() int {
+	fs := runtimeFS{"/sys", "/dev", "/proc"}
+	target, err := fs.identify()
+	if err != nil {
+		fmt.Println("ANS-CHECK FAIL:", err)
+		return 1
+	}
+	ns, err := fs.waitNamespace(target, 45*time.Second)
+	if err != nil {
+		fmt.Println("ANS-CHECK FAIL:", err)
+		return 1
+	}
+	hashes, matched, err := readBlocks(ns.path, expected, func(string) {}, nil)
+	result := map[string]interface{}{
+		"boot_id": readTrim("/proc/sys/kernel/random/boot_id"),
+		"namespace": ns.name, "matched": matched, "hashes": hashes,
+		"read_only": true,
+	}
+	if err != nil {
+		result["error"] = err.Error()
+	}
+	data, _ := json.MarshalIndent(result, "", "  ")
+	fmt.Println(string(data))
+	if err != nil {
+		fmt.Println("ANS-CHECK FAIL:", err)
+		return 1
+	}
+	fmt.Printf("ANS-CHECK PASS MATCH %d OF %d (O_DIRECT, READ ONLY)\n", matched, len(expected))
+	return 0
+}
+
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "--verify" && os.Getpid() != 1 {
+		os.Exit(standaloneStorageCheck())
+	}
 	for _, path := range []string{"/proc", "/sys", "/dev", "/run"} {
 		_ = os.MkdirAll(path, 0755)
 	}

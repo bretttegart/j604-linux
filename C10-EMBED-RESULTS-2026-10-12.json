@@ -1,0 +1,66 @@
+{
+  "date": "2026-10-12",
+  "experiment": "C10 embedded diagnostic payload via proxy",
+  "result": "PASS",
+  "boot_id_prefix": "aedb5106",
+  "panel": {
+    "cell": "C10 EMBED",
+    "direct_read_matches": 5,
+    "namespace": true,
+    "branch": 3,
+    "ans_crash": false,
+    "reset_error": null,
+    "phase": "READS MATCH",
+    "error": null
+  },
+  "image": {
+    "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/embedded-diag.bin",
+    "bytes": 7946390,
+    "sha256": "fcfe83bf2274be3545a2bc301bba7d47c02859ac4f6184391c5e31c3a7c0701c"
+  },
+  "panel_frame": {
+    "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/frames/f010.jpg",
+    "sha256": "ec29d0c91ec2506adbb4ebc5509d81f41cabf3de1903b3d31227631ab9a0506c"
+  },
+  "host": {
+    "host_exit": 1,
+    "elapsed_seconds": 20.737264156341553
+  },
+  "limit": "Proxy-loaded diagnostic and shell payloads passed. Installed untethered result pending. Sleep/restart and broader laptop support remain unresolved.",
+  "shell_proxy": {
+    "image": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/embedded-shell.bin",
+      "sha256": "e51caa73e25947d5306710991ecbb2f2c6b794ec47f3a3ef7e6d6a8c42142740",
+      "bytes": 8136572
+    },
+    "startup_direct_read_matches": 5,
+    "operator_confirmed_keyboard": true,
+    "operator_confirmed_repeat_ans_check_pass": true,
+    "panel_frame": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/shell-frames/f021.jpg",
+      "sha256": "76f798d12cc390946a5aaa9ee9d64ba33bd6391c0598c365064b0bd66ed5b135"
+    }
+  },
+  "final_shell_proxy": {
+    "image": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/embedded-shell-final.bin",
+      "sha256": "32e0d6282c003da3a4be730bd9841b3903f440751f963a38ddbe2a087a1c3dfa",
+      "bytes": 8140659
+    },
+    "startup_direct_read_matches": 5,
+    "nvme_read_only_setup": "yes",
+    "storage_check_exit": 0,
+    "console_font": "16x32 PSF2 from doubled kernel VGA 8x16",
+    "shell_prompt_visible": true,
+    "panel_frame": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/final-frames/f015.jpg",
+      "sha256": "921278d4e47e8adc9ac2153a8c92dedcfc3313da865a2214b326f16a73689f78"
+    }
+  },
+  "installed_untethered": {
+    "status": "AWAITING_OPERATOR_INSTALL_AND_BOOT",
+    "target_system_volume_uuid": "46727C64-DC7F-4B50-844E-5E3CC41A2C02",
+    "package_sha256": "c0bb028021d9f531c0006fb472584a47948e52337b1a07320df90d87ef7539a0",
+    "package_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c10-install.tar.gz"
+  }
+}

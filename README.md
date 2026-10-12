@@ -13,7 +13,11 @@ unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
 > **Start here (Oct 12):** [C9 review](C9-REVIEW-2026-10-12.md) contains
 > the verified source comparison, restart matrix and SART capture protocol.
-> **Latest:** [E5 live handoff](C9-E5-SESSION-2026-10-12.md) reproduces
+> **Latest:** [C10 embedded boot and shell](C10-EMBED-SESSION-2026-10-12.md)
+> passes through the proxy: warm NVMe, five matching direct reads,
+> working keyboard and interactive read-only shell. The exact final image
+> is packaged for a LabOS boot-object install; untethered result is pending.
+> [E5 live handoff](C9-E5-SESSION-2026-10-12.md) reproduces
 > the Linux sleep crash after a proven m1n1 restart, keeping ANS running
 > and reserving all nine retained allocations. Linux still renegotiates
 > RTKit, so state changed during takeover remains open. Its crashlog
