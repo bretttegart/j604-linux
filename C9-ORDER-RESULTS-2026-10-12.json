@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-12",
+  "cell": "C9 R (ordering diagnostic)",
+  "status": "PREPARED, NOT YET RUN",
+  "experiment": "R-order: warm reads, one ANS unbind; AP QUIESCED/IOP SLEEP, CPU stop, RTKit reinit/buffer release, power-domain detach; then bind and verify reads",
+  "kernel_change": "Targeted remove path stops ANS coprocessor before RTKit reinit and shared-buffer release; logs phase returns and CPU/boot state. Other shutdown/suspend paths unchanged.",
+  "panel_fields": [
+    "kmsg sequence gaps",
+    "filtered runtime-log overflow",
+    "kmsg reader error",
+    "latest ANSRM teardown marker"
+  ],
+  "artifact_root": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012",
+  "artifacts": {
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/Image.gz",
+      "bytes": 2945763,
+      "sha256": "946c9da0faad47d660ea948e176fae8ade55e4db6ea60cc0d64e0b25603b2367"
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "bytes": 35374,
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01"
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build/initramfs.cpio.gz",
+      "bytes": 987386,
+      "sha256": "b7c682b8acc99a8291bd8c360ed736452df8a205f093bf13b49c4382c534be75"
+    },
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+      "bytes": 3932160,
+      "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf"
+    },
+    "m1n1_elf": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+      "bytes": 6173736,
+      "sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+    },
+    "parity_patch": {
+      "path": "/home/btega/git/j604-linux/diagnostics/kernel-c9/c8-to-parity.patch",
+      "bytes": 4688,
+      "sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25"
+    },
+    "ordering_patch": {
+      "path": "/home/btega/git/j604-linux/diagnostics/kernel-c9/parity-to-order.patch",
+      "bytes": 2531,
+      "sha256": "5a1386d698c648c945588b96da52c223a3e5466e9841938df96cc9439c66faba"
+    },
+    "runtime_go": {
+      "path": "/home/btega/git/j604-linux/init/c9_runtime.go",
+      "bytes": 13217,
+      "sha256": "bf962f662edf7618e7c720eda162b074279926418dd271d7571bf10129d1e335"
+    },
+    "status_go": {
+      "path": "/home/btega/git/j604-linux/init/c9_status.go",
+      "bytes": 13535,
+      "sha256": "7227b1e40338d073e09fcb4390fcfd44db4f4937999e8c213ed952759c5902e2"
+    },
+    "kernel_config": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/kernel-src/.config",
+      "bytes": 71838,
+      "sha256": "58555ef341ff0ed8f2bec3078fce1882d8e97c9086e53f14369664161447bcfb"
+    },
+    "uncompressed_kernel": {
+      "bytes": 10686976,
+      "sha256": "75b618c0bb7ef2d7d2fe5d5f99b88117944754546f863be38a95fc92c566aa82"
+    }
+  },
+  "base_manifest": {
+    "created_at": "2026-10-12",
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+      "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+      "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+      "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+    },
+    "expected_read_hashes": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "init_source_sha256": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+    "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/Image.gz",
+      "sha256": "946c9da0faad47d660ea948e176fae8ade55e4db6ea60cc0d64e0b25603b2367",
+      "bytes": 2945763
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+      "bytes": 35374
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build/initramfs.cpio.gz",
+      "sha256": "b7c682b8acc99a8291bd8c360ed736452df8a205f093bf13b49c4382c534be75",
+      "bytes": 987386
+    },
+    "experiment": "R-order: warm reads, one ANS unbind; AP QUIESCED/IOP SLEEP, CPU stop, RTKit reinit/buffer release, power-domain detach; then bind and verify reads",
+    "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25",
+    "runtime_source_sha256": "d661978dd86a1e89b4f9b13081d88f50f25490fc389005afe92e1422beb30542",
+    "runtime_controls": {
+      "target_device": "4c5cc0000.nvme",
+      "driver": "nvme-apple",
+      "required_compatible": "apple,t8132-nvme-ans2",
+      "unbind_maximum": 1,
+      "bind_maximum": 1,
+      "control_deadline_seconds": 90,
+      "direct_read_deadline_seconds": 90,
+      "namespace_deadline_seconds": 45,
+      "log_barrier_deadline_seconds": 5,
+      "mount_holder_identity_gates": true,
+      "device_renumbering_supported": true,
+      "retry_after_failure": false,
+      "required_namespace_id": 1,
+      "all_ans_namespaces_checked_for_mounts_and_holders": true,
+      "log_marker_newline_terminated": true
+    },
+    "attempt": 3,
+    "kernel_change": "Targeted remove path stops ANS coprocessor before RTKit reinit and shared-buffer release; logs phase returns and CPU/boot state. Other shutdown/suspend paths unchanged."
+  },
+  "builds": {
+    "kernel": "make -j4 ARCH=arm64 LLVM=1 Image.gz: success",
+    "init": "python3 scripts/build-c9-init.py: ARM64 ELF and exact deterministic newc/gzip archive verified",
+    "patch": "git apply --check against preserved C9-PARITY-20261012/kernel-src: success"
+  }
+}

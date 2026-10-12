@@ -23,6 +23,11 @@ func parseRuntimeLog(msg string, r *report) {
 	if strings.HasPrefix(msg, "C9-R-BARRIER ") {
 		r.Marker = msg
 	}
+	if strings.Contains(msg, "nvme-apple "+ansDevice+":") && strings.Contains(msg, "ANSRM ") {
+		if p := strings.Index(msg, "ANSRM "); p >= 0 {
+			r.Teardown = strings.TrimSpace(msg[p+6:])
+		}
+	}
 	if strings.HasPrefix(msg, "nvme nvme") {
 		prefix, body, ok := strings.Cut(msg, ":")
 		name := strings.TrimPrefix(prefix, "nvme ")
@@ -44,7 +49,7 @@ func parseRuntimeLog(msg string, r *report) {
 		return
 	}
 	keep := false
-	for _, tag := range []string{"ANSRST ", "ANSBR ", "ANSCHK ", "RTKDIAG ", "NVME-SNAP ", "co-processor has crashed", "RTKit crashed;"} {
+	for _, tag := range []string{"ANSRST ", "ANSBR ", "ANSCHK ", "ANSRM ", "RTKDIAG ", "NVME-SNAP ", "co-processor has crashed", "RTKit crashed;"} {
 		if strings.Contains(msg, tag) {
 			keep = true
 		}

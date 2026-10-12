@@ -1,0 +1,90 @@
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -1790,12 +1790,26 @@
+ 	nvme_uninit_ctrl(&anv->ctrl);
+ 
+ 	if (apple_rtkit_is_running(anv->rtk)) {
+-		apple_rtkit_shutdown(anv->rtk);
+-
++		int ret;
++
++		dev_err(anv->dev, "ANSRM shutdown prepare begin\n");
++		ret = apple_rtkit_shutdown_prepare(anv->rtk);
++		dev_err(anv->dev, "ANSRM shutdown prepare ret=%d\n", ret);
++		dev_err(anv->dev, "ANSRM cpu stop before reinit\n");
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+-	}
+-
++		dev_err(anv->dev, "ANSRM cpu control=%08x boot=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS));
++		if (!ret) {
++			dev_err(anv->dev, "ANSRM reinit begin\n");
++			ret = apple_rtkit_reinit(anv->rtk);
++			dev_err(anv->dev, "ANSRM reinit ret=%d\n", ret);
++		}
++	}
++
++	dev_err(anv->dev, "ANSRM genpd detach begin\n");
+ 	apple_nvme_detach_genpd(anv);
++	dev_err(anv->dev, "ANSRM genpd detach end\n");
+ }
+ 
+ static void apple_nvme_shutdown(struct platform_device *pdev)
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -457,6 +457,8 @@
+ {
+ 	if (bfr->size == 0)
+ 		return;
++	dev_err(rtk->dev, "RTKDIAG free begin iova=%pad size=%zx mapped=%d\n",
++		&bfr->iova, bfr->size, bfr->is_mapped);
+ 
+ 	if (rtk->ops->shmem_destroy)
+ 		rtk->ops->shmem_destroy(rtk->cookie, bfr);
+@@ -468,6 +470,7 @@
+ 	bfr->iova = 0;
+ 	bfr->size = 0;
+ 	bfr->is_mapped = false;
++	dev_err(rtk->dev, "RTKDIAG free end\n");
+ }
+ 
+ static void apple_rtkit_memcpy(struct apple_rtkit *rtk, void *dst,
+@@ -1011,7 +1014,7 @@
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_boot);
+ 
+-int apple_rtkit_shutdown(struct apple_rtkit *rtk)
++int apple_rtkit_shutdown_prepare(struct apple_rtkit *rtk)
+ {
+ 	int ret;
+ 
+@@ -1022,6 +1025,16 @@
+ 		return ret;
+ 
+ 	ret = apple_rtkit_set_iop_power_state(rtk, APPLE_RTKIT_PWR_STATE_SLEEP);
++	if (ret)
++		return ret;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_shutdown_prepare);
++
++int apple_rtkit_shutdown(struct apple_rtkit *rtk)
++{
++	int ret = apple_rtkit_shutdown_prepare(rtk);
++
+ 	if (ret)
+ 		return ret;
+ 
+--- a/include/linux/soc/apple/rtkit.h
++++ b/include/linux/soc/apple/rtkit.h
+@@ -143,6 +143,9 @@
+  */
+ int apple_rtkit_shutdown(struct apple_rtkit *rtk);
+ 
++/* Send AP QUIESCED and IOP SLEEP requests without reinitializing RTKit. */
++int apple_rtkit_shutdown_prepare(struct apple_rtkit *rtk);
++
+ /*
+  * Put the co-processor into the lowest power state. Note that it usually
+  * is not possible to recover from this state without a full SoC reset.

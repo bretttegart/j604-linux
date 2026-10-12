@@ -31,6 +31,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > [Linux runtime teardown](C9-RUNTIME-SESSION-2026-10-12.md): five warm reads
 > match; one unbind completes, then ANS crash is reported before bind.
 > The log-integrity check also fails; no rebind is attempted.
+> [Teardown ordering experiment](C9-ORDER-SESSION-2026-10-12.md): a diagnostic
+> image is prepared to stop the ANS CPU after sleep acknowledgements and
+> before RTKit buffer release. It has not yet been run on the Mac.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
@@ -89,6 +92,9 @@ fbcon=nodefer`.
 - `C9-RUNTIME-SESSION-2026-10-12.md`, `C9-RUNTIME-RESULTS-2026-10-12.json`,
   `init/c9_runtime.go`, `init/c9_runtime_test.go` and `scripts/build-c9-init.py`
   — Linux-managed teardown crash after verified reads; no rebind attempted.
+- `C9-ORDER-SESSION-2026-10-12.md`, `C9-ORDER-RESULTS-2026-10-12.json` and
+  `diagnostics/kernel-c9/parity-to-order.patch` — prepared targeted teardown
+  ordering test with separate log-integrity counters and phase markers.
 - `C9-PRELOAD-SESSION-2026-10-12.md`, `C9-PRELOAD-RESULTS-2026-10-12.json`,
   `init/c9_status.go` and
   `scripts/run-c9-preload.py` — matched Linux RAM-preload comparison and

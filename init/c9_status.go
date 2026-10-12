@@ -50,6 +50,7 @@ type report struct {
 	Marker            string
 	RuntimeLog        []string
 	RuntimeLogDropped int
+	Teardown          string
 }
 
 var mu sync.Mutex
@@ -358,7 +359,21 @@ func lines(r report) []string {
 		if b == "" {
 			b = "NA"
 		}
-		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+		logErr := "NONE"
+		if r.LogError != "" {
+			logErr = strings.ToUpper(r.LogError)
+			if len(logErr) > 28 {
+				logErr = logErr[:28]
+			}
+		}
+		teardown := r.Teardown
+		if teardown == "" {
+			teardown = "NA"
+		}
+		if len(teardown) > 32 {
+			teardown = teardown[:32]
+		}
+		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "TEARDOWN " + teardown, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 	}
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }
