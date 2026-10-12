@@ -1,0 +1,28 @@
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -1172,6 +1172,25 @@
+ 	}
+ 
+ 	dev_err(anv->dev, "ANSCHK bst ok=%08x\n", boot_status);
++
++	/*
++	 * C9 E3 diagnostic: with the coprocessor freshly booted and before
++	 * any NVMMU or queue setup, run the same sleep request the remove
++	 * path makes, stop the CPU, and freeze the trace ring on the
++	 * result. Probe is aborted either way so the machine parks in
++	 * the tested state; this tree is single-purpose.
++	 */
++	dev_err(anv->dev, "E3PROBE prepare begin\n");
++	ret = apple_rtkit_shutdown_prepare(anv->rtk);
++	dev_err(anv->dev, "E3PROBE prepare ret=%d\n", ret);
++	writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++	dev_err(anv->dev, "E3PROBE cpu control=%08x boot=%08x\n",
++		readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++		readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS));
++	apple_rtkit_diag_trace_dump_mgmt(anv->rtk, "e3probe", ret);
++	dev_err(anv->dev, "E3PROBE done\n");
++	ret = -ENODEV;
++	goto out;
+ 	dev_dbg(anv->dev, "ANS booted successfully.");
+ 
+ 	/*

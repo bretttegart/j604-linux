@@ -73,6 +73,8 @@ type report struct {
 	CrashDeltaMs      int64
 	BootIOPAck        string
 	SkipReads         bool
+	ProbeTest         bool
+	ProbeDone         bool
 }
 
 var mu sync.Mutex
@@ -373,6 +375,53 @@ func lines(r report) []string {
 	if reset == "" {
 		reset = "NONE"
 	}
+	if r.ProbeTest {
+		apAck, iopAck := "NO", "NO"
+		if r.APSleepAck {
+			apAck = "YES"
+		}
+		if r.IOPSleepAck {
+			iopAck = "YES"
+		}
+		prep := r.ShutdownPrepare
+		if prep == "" {
+			prep = "NA"
+		}
+		cpu := "NA"
+		if r.CPUStateObserved {
+			cpu = fmt.Sprintf("%08X BOOT %08X", r.CPUControl, r.BootStatus)
+		}
+		bootAck := r.BootIOPAck
+		if bootAck == "" {
+			bootAck = "NA"
+		}
+		traceLine := "TRACE NONE"
+		if r.TraceSeen {
+			traceLine = fmt.Sprintf("TRACE TOT %d DROP %d", r.TraceTotal, r.TraceDropped)
+		}
+		rxLine := "RX>SLEEP NONE"
+		if r.PostSleepCount > 0 {
+			rxLine = "RX>SLEEP " + strings.Join(r.PostSleepRx, " ")
+			if extra := r.PostSleepCount - len(r.PostSleepRx); extra > 0 {
+				rxLine += fmt.Sprintf(" +%d", extra)
+			}
+		}
+		ringLine := "RING ACK NO"
+		if r.SleepAckRing {
+			ringLine = "RING ACK YES"
+		}
+		if r.CrashDeltaSeen {
+			ringLine += fmt.Sprintf(" CRASH +%dMS", r.CrashDeltaMs)
+		}
+		logErr := "NONE"
+		if r.LogError != "" {
+			logErr = strings.ToUpper(r.LogError)
+			if len(logErr) > 28 {
+				logErr = logErr[:28]
+			}
+		}
+		return []string{r.Cell, status, "ANS BR " + branch, "ANS CRASH " + crash, "BOOT IOP ACK " + bootAck, "AP SLEEP ACK " + apAck, "IOP SLEEP ACK " + iopAck, "SHUTDOWN PREP " + prep, "CPU " + cpu, traceLine, rxLine, ringLine, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+	}
 	if r.Runtime {
 		u, b := r.UnbindResult, r.BindResult
 		if u == "" {
@@ -457,9 +506,11 @@ func main() {
 			cell = strings.ReplaceAll(value, "-", " ")
 		}
 	}
-	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R" || cell == "C9 E1", SkipReads: cell == "C9 E1"}
+	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R" || cell == "C9 E1" || cell == "C9 E3", SkipReads: cell == "C9 E1", ProbeTest: cell == "C9 E3"}
 	go captureLog()
-	if current.Runtime {
+	if current.ProbeTest {
+		go testProbe()
+	} else if current.Runtime {
 		go testRuntime()
 	} else {
 		go testStorage()

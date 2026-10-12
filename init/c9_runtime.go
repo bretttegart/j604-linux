@@ -99,7 +99,7 @@ func parseRuntimeLog(msg string, r *report) {
 			}
 		}
 	}
-	if strings.Contains(msg, "RTKTRACE begin") && strings.Contains(msg, "phase=teardown") {
+	if strings.Contains(msg, "RTKTRACE begin") && (strings.Contains(msg, "phase=teardown") || strings.Contains(msg, "phase=e3probe")) {
 		r.TraceSeen = true
 		for _, field := range strings.Fields(msg) {
 			if v, ok := strings.CutPrefix(field, "total="); ok {
@@ -152,6 +152,22 @@ func parseRuntimeLog(msg string, r *report) {
 				}
 			}
 		}
+	}
+	if strings.Contains(msg, "E3PROBE prepare ret=") {
+		_, result, _ := strings.Cut(msg, "E3PROBE prepare ret=")
+		if fields := strings.Fields(result); len(fields) != 0 {
+			r.ShutdownPrepare = fields[0]
+		}
+	}
+	if strings.Contains(msg, "E3PROBE cpu control=") {
+		_, result, _ := strings.Cut(msg, "E3PROBE ")
+		var cpu, boot uint64
+		if _, err := fmt.Sscanf(result, "cpu control=%x boot=%x", &cpu, &boot); err == nil {
+			r.CPUControl, r.BootStatus, r.CPUStateObserved = cpu, boot, true
+		}
+	}
+	if strings.Contains(msg, "E3PROBE done") {
+		r.ProbeDone = true
 	}
 	if !strings.Contains(msg, "nvme-apple "+ansDevice+":") {
 		return
@@ -504,6 +520,36 @@ func executeRuntime(steps []runtimeStep) error {
 		}
 	}
 	return nil
+}
+
+func testProbe() {
+	deadline := time.Now().Add(120 * time.Second)
+	for {
+		mu.Lock()
+		done := current.ProbeDone
+		mu.Unlock()
+		if done {
+			time.Sleep(2 * time.Second)
+			mu.Lock()
+			if current.ShutdownPrepare == "0" && current.IOPSleepAck {
+				current.Status = "PASS"
+			} else {
+				current.Status = "FAIL"
+			}
+			current.Phase = "E3 SETTLED"
+			mu.Unlock()
+			return
+		}
+		if time.Now().After(deadline) {
+			mu.Lock()
+			current.Status = "INCONCLUSIVE"
+			current.Error = "E3 DEADLINE"
+			current.Phase = "E3 SETTLED"
+			mu.Unlock()
+			return
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
 }
 
 func testRuntime() {

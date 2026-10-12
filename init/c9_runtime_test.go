@@ -360,3 +360,23 @@ func TestBootIOPAckStateRecorded(t *testing.T) {
 		t.Fatalf("sleep ACK overwrote boot state: %q", r.BootIOPAck)
 	}
 }
+
+func TestE3ProbeMarkers(t *testing.T) {
+	r := &report{Runtime: true, ProbeTest: true}
+	parseRuntimeLog("nvme-apple 4c5cc0000.nvme: E3PROBE prepare ret=-62", r)
+	if r.ShutdownPrepare != "-62" {
+		t.Fatalf("prepare not recorded: %q", r.ShutdownPrepare)
+	}
+	parseRuntimeLog("nvme-apple 4c5cc0000.nvme: E3PROBE cpu control=00000000 boot=00000000", r)
+	if !r.CPUStateObserved {
+		t.Fatalf("cpu state not recorded")
+	}
+	parseRuntimeLog("nvme-apple 4c5cc0000.nvme: RTKTRACE begin v=1 mgmt=1 phase=e3probe ret=-62 cap=8192 count=40 total=40 dropped=0 cutoff_ns=1", r)
+	if !r.TraceSeen || r.TraceTotal != 40 {
+		t.Fatalf("e3probe trace header not recorded: seen=%v total=%d", r.TraceSeen, r.TraceTotal)
+	}
+	parseRuntimeLog("nvme-apple 4c5cc0000.nvme: E3PROBE done", r)
+	if !r.ProbeDone {
+		t.Fatalf("probe done not recorded")
+	}
+}
