@@ -1,0 +1,484 @@
+{
+  "date": "2026-10-12",
+  "experiment": "R: warm Linux reads followed by one ANS unbind/rebind sequence, stopping at the first failed phase",
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012",
+  "final_manifest": {
+    "created_at": "2026-10-12",
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+      "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+      "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+      "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+    },
+    "expected_read_hashes": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "init_source_sha256": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+    "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/Image.gz",
+      "sha256": "aeb4b1562c410084bd88280f6b0f036243f93d0396fa4672de9cdfd09b571fa7",
+      "bytes": 2944858
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+      "bytes": 35374
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/final/initramfs.cpio.gz",
+      "sha256": "1f199d0cb9d8ca2df640ba328a817d884c51e29e8e5e7c285f77558ef1051aa4",
+      "bytes": 986613
+    },
+    "experiment": "R: warm Linux direct reads, one ANS unbind/rebind, direct reads of rebound namespace",
+    "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25",
+    "runtime_source_sha256": "7a424cd1bc01864782648efbf90660b48f2c290c9c8bdd358feb7e1b10dc19ec",
+    "runtime_controls": {
+      "target_device": "4c5cc0000.nvme",
+      "driver": "nvme-apple",
+      "required_compatible": "apple,t8132-nvme-ans2",
+      "unbind_maximum": 1,
+      "bind_maximum": 1,
+      "control_deadline_seconds": 90,
+      "direct_read_deadline_seconds": 90,
+      "namespace_deadline_seconds": 45,
+      "log_barrier_deadline_seconds": 5,
+      "mount_holder_identity_gates": true,
+      "device_renumbering_supported": true,
+      "retry_after_failure": false,
+      "required_namespace_id": 1,
+      "all_ans_namespaces_checked_for_mounts_and_holders": true,
+      "log_marker_newline_terminated": true
+    },
+    "attempt": 3
+  },
+  "final_validation": {
+    "native_checks": 11,
+    "go_race_detector": "PASS",
+    "newline_terminated_marker_and_kmsg_continuation_metadata": "PASS",
+    "native_checks_log_sha256": "535e2868b37bd09f4e58e3e9b6850286145bd4400720e907efde7bf9b95b7f87",
+    "source_hashes": {
+      "init/c9_status.go": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+      "init/c9_runtime.go": "7a424cd1bc01864782648efbf90660b48f2c290c9c8bdd358feb7e1b10dc19ec",
+      "init/c9_runtime_test.go": "1156895ed126387d502e8b4babbdd765a4884308f1cbe5fafe8b8755a95aea77",
+      "scripts/build-c9-init.py": "0bb35086fdbeed0b4bc422dd5df59a196e3320b1151d64f6123298bc6031543d",
+      "scripts/run-c9-preload.py": "03bf97424e528c41cb974855d73a768c4129d9ff554fbc512e05f6116f2365a3"
+    },
+    "arm64_init_and_newc": "PASS"
+  },
+  "attempts": {
+    "R-RUN": {
+      "host": {
+        "cell": "R",
+        "started_at": "2026-10-12T13:33:21.899196-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099769577472,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1100306448384,
+            "bytes": 986171
+          },
+          "prepared-dtb": {
+            "address": 1099631575040,
+            "bytes": 37056
+          }
+        },
+        "m1n1_base": "0x100041b0000",
+        "host_heap": {
+          "base": "0x1000f264000",
+          "end": "0x1004f264000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-R",
+        "read_buffer": "0x10007288000",
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 16,
+        "ans_boot_status": 3732000341,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T13:33:24.096762-06:00"
+      },
+      "linux": {
+        "cell": "R",
+        "attempt": 1,
+        "linux_result": "DISCOVERY_GUARD_STOP",
+        "screen_status": "FAIL",
+        "report_source": "Manual transcription checked against C920 status-initial.jpg",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/R-RUN/status-initial.jpg",
+        "frame_sha256": "6ad544ef8178e7276cf761e2764a477bf814964e5fdbbda2b11d82b1330c4713",
+        "boot_id_prefix": "03776046",
+        "before_matched_direct_reads": 0,
+        "after_matched_direct_reads": 0,
+        "namespace_selected": false,
+        "ans_branch": 3,
+        "ans_crash": false,
+        "reset_error": null,
+        "unbind_result": "NA",
+        "bind_result": "NA",
+        "phase": "WAIT BEFORE",
+        "error": "MULTIPLE ANS NAMESPACES",
+        "runtime_transition_performed": false,
+        "interpretation": "Discovery incorrectly required only one ANS namespace; not an ANS restart failure."
+      },
+      "manifest": {
+        "created_at": "2026-10-12",
+        "m1n1": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+          "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+          "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+          "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+        },
+        "expected_read_hashes": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "init_source_sha256": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+        "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+        "kernel": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/Image.gz",
+          "sha256": "aeb4b1562c410084bd88280f6b0f036243f93d0396fa4672de9cdfd09b571fa7",
+          "bytes": 2944858
+        },
+        "dtb": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+          "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+          "bytes": 35374
+        },
+        "initramfs": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/initramfs.cpio.gz",
+          "sha256": "ad478e5057a4c8530b435785ff46e97fe500d1b3ddcddccb3bad6023ad5a7231",
+          "bytes": 986171
+        },
+        "experiment": "R: warm Linux direct reads, one ANS unbind/rebind, direct reads of rebound namespace",
+        "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25",
+        "runtime_source_sha256": "374a240f6f5a65d6aa752b7f672c58f965061e02bc90797a22feb79d221ff441",
+        "runtime_controls": {
+          "target_device": "4c5cc0000.nvme",
+          "driver": "nvme-apple",
+          "required_compatible": "apple,t8132-nvme-ans2",
+          "unbind_maximum": 1,
+          "bind_maximum": 1,
+          "control_deadline_seconds": 90,
+          "direct_read_deadline_seconds": 90,
+          "namespace_deadline_seconds": 45,
+          "log_barrier_deadline_seconds": 5,
+          "mount_holder_identity_gates": true,
+          "device_renumbering_supported": true,
+          "retry_after_failure": false
+        }
+      },
+      "payload_hashes": {
+        "kernel": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+        "initramfs": "ad478e5057a4c8530b435785ff46e97fe500d1b3ddcddccb3bad6023ad5a7231",
+        "prepared-dtb": "4bbf29bd9416972b50375bd7ea15de7914a6a08dedef8479644c44aa74b9acd6"
+      },
+      "evidence_sha256": {
+        "host-result.json": "29fff62701055aa304a1354ef087856a5f8d5feb8d4a659e42466ad99dbd845d",
+        "linux-result.json": "d3cb0126e7a731f53f1cbb38dabf365acd11c321cf02168ac49602a3b9fc24fb",
+        "manifest.json": "e72060742464a1908f7a6969fd68c6a7c94a3be4763344a38382218beead8fad",
+        "payload-hashes-after-cycle.json": "22d99d97a562d8b4620e3c315c589d9d8749ca5380d9780ac954cd19f8e17dec",
+        "payload-hashes-before-cycle.json": "22d99d97a562d8b4620e3c315c589d9d8749ca5380d9780ac954cd19f8e17dec",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "5dc9b7eb738dc3a01330721b9b76a5a87b7060b3a7b365449f798974abea0114",
+        "prepared.dtb": "4bbf29bd9416972b50375bd7ea15de7914a6a08dedef8479644c44aa74b9acd6",
+        "status-initial.jpg": "6ad544ef8178e7276cf761e2764a477bf814964e5fdbbda2b11d82b1330c4713",
+        "trace-no-storage-cycle.bin": "c987de2d2f130de7e8aea7a4c2c24d6bcf51f22c338e6f0eca9baf2930aff7dd",
+        "trace-no-storage-cycle.json": "e9f82064ca08e4eead838e6fc3cbf53769af4239b8fbefa319cd8adcc4d432b5",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      }
+    },
+    "R2-RUN": {
+      "host": {
+        "cell": "R",
+        "started_at": "2026-10-12T13:38:08.372714-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099775868928,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1100312739840,
+            "bytes": 986518
+          },
+          "prepared-dtb": {
+            "address": 1099638587392,
+            "bytes": 37056
+          }
+        },
+        "m1n1_base": "0x10004860000",
+        "host_heap": {
+          "base": "0x1000f914000",
+          "end": "0x1004f914000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-R",
+        "read_buffer": "0x10007938000",
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 16,
+        "ans_boot_status": 3732000341,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T13:38:10.567894-06:00"
+      },
+      "linux": {
+        "cell": "R",
+        "attempt": 2,
+        "linux_result": "LOG_BARRIER_GUARD_STOP",
+        "screen_status": "FAIL",
+        "report_source": "Manual transcription checked against C920 status-initial.jpg",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/R2-RUN/status-initial.jpg",
+        "frame_sha256": "45e98c22ab01553f93204a67f798da7bc97e18966d939332d263a7c86fcc7170",
+        "boot_id_prefix": "9859e707",
+        "before_matched_direct_reads": 5,
+        "after_matched_direct_reads": 0,
+        "namespace_present": true,
+        "ans_branch": 3,
+        "ans_crash": false,
+        "reset_error": null,
+        "unbind_result": "NA",
+        "bind_result": "NA",
+        "phase": "CHECK BEFORE",
+        "error": "LOG BARRIER DEADLINE",
+        "runtime_transition_performed": false,
+        "interpretation": "Warm control passed; the userspace log marker omitted newline and could remain unfinalized. No unbind/bind; not a restart failure."
+      },
+      "manifest": {
+        "created_at": "2026-10-12",
+        "m1n1": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+          "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+          "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+          "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+        },
+        "expected_read_hashes": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "init_source_sha256": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+        "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+        "kernel": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/Image.gz",
+          "sha256": "aeb4b1562c410084bd88280f6b0f036243f93d0396fa4672de9cdfd09b571fa7",
+          "bytes": 2944858
+        },
+        "dtb": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+          "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+          "bytes": 35374
+        },
+        "initramfs": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/corrected/initramfs.cpio.gz",
+          "sha256": "ec7daebaa3c94da5a43304ab5bbf50fa82367963d0bee1e2c38242d4c9c4aebb",
+          "bytes": 986518
+        },
+        "experiment": "R: warm Linux direct reads, one ANS unbind/rebind, direct reads of rebound namespace",
+        "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25",
+        "runtime_source_sha256": "c9cb00f97162074de9863e2f9208af05fb1b405a35c0309c28c9c9d174694eac",
+        "runtime_controls": {
+          "target_device": "4c5cc0000.nvme",
+          "driver": "nvme-apple",
+          "required_compatible": "apple,t8132-nvme-ans2",
+          "unbind_maximum": 1,
+          "bind_maximum": 1,
+          "control_deadline_seconds": 90,
+          "direct_read_deadline_seconds": 90,
+          "namespace_deadline_seconds": 45,
+          "log_barrier_deadline_seconds": 5,
+          "mount_holder_identity_gates": true,
+          "device_renumbering_supported": true,
+          "retry_after_failure": false,
+          "required_namespace_id": 1,
+          "all_ans_namespaces_checked_for_mounts_and_holders": true
+        },
+        "attempt": 2
+      },
+      "payload_hashes": {
+        "kernel": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+        "initramfs": "ec7daebaa3c94da5a43304ab5bbf50fa82367963d0bee1e2c38242d4c9c4aebb",
+        "prepared-dtb": "b539cb4e4c99370c73e8659d578cda5dde12d61d2917cff4fe346f180ad3e51d"
+      },
+      "evidence_sha256": {
+        "host-result.json": "66bc467b4fd057984f4c308b256ded375521b1dc4478d68cb0a243d8ecb3d921",
+        "linux-result.json": "539689aa7ab90432e8b789b240f63eeaee3d59ce92313008dbeaa5ce2774a8f7",
+        "manifest.json": "d580f1b2bccada520b7485b8991007225fc68d0bb80b2fa0ab0a03b59255714e",
+        "payload-hashes-after-cycle.json": "a7d2b92f370a9bead874822a22dace60b42d3fc655d23100035ce00b2ad3a82b",
+        "payload-hashes-before-cycle.json": "a7d2b92f370a9bead874822a22dace60b42d3fc655d23100035ce00b2ad3a82b",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "b117d7c788c7ebd73c86bb847abf0fe60f9c1cc2cf4905aeac9ac70ebfd5526d",
+        "prepared.dtb": "b539cb4e4c99370c73e8659d578cda5dde12d61d2917cff4fe346f180ad3e51d",
+        "status-initial.jpg": "45e98c22ab01553f93204a67f798da7bc97e18966d939332d263a7c86fcc7170",
+        "trace-no-storage-cycle.bin": "cd23ff3a025517db225cac1e66f1905b7d86fbdb6ad9ac91c48bb8a860dc3aea",
+        "trace-no-storage-cycle.json": "d27e198bc83429a3498cea7bd05a9a0201d0fc7a5d4c6674efad98a85882c7c4",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      }
+    },
+    "R3-RUN": {
+      "host": {
+        "cell": "R",
+        "started_at": "2026-10-12T13:42:25.065082-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099794743296,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1100331614208,
+            "bytes": 986613
+          },
+          "prepared-dtb": {
+            "address": 1099656822784,
+            "bytes": 37056
+          }
+        },
+        "m1n1_base": "0x100059c4000",
+        "host_heap": {
+          "base": "0x10010a78000",
+          "end": "0x10050a78000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-R",
+        "read_buffer": "0x10008a9c000",
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 16,
+        "ans_boot_status": 3732000341,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T13:42:27.259183-06:00"
+      },
+      "linux": {
+        "cell": "R",
+        "attempt": 3,
+        "linux_result": "UNBIND_PHASE_CRASH",
+        "screen_status": "FAIL",
+        "report_source": "Manual transcription checked against final C920 status frame",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/R3-RUN/status-final.jpg",
+        "frame_sha256": "63566f2557884cb9946934fb97ff59192871d11d9e145b57f192ccff49c5dfd8",
+        "camera_startup_frames_discarded": 60,
+        "boot_id_prefix": "0296c6f4",
+        "before_matched_direct_reads": 5,
+        "after_matched_direct_reads": 0,
+        "after_reads_attempted": false,
+        "namespace_present_at_end": false,
+        "ans_branch": 3,
+        "ans_crash": true,
+        "reset_error": null,
+        "unbind_result": "OK",
+        "bind_result": "NA",
+        "unbind_calls": 1,
+        "bind_calls": 0,
+        "driver_unbound_and_ans_namespaces_absent_verified_by_init": true,
+        "phase": "CHECK UNBOUND",
+        "error": "LOG INCOMPLETE",
+        "log_capture_incomplete": true,
+        "log_incomplete_detail_exported": false,
+        "runtime_transition_performed": "one Linux unbind; no rebind",
+        "clean_rtkit_shutdown_proven": false,
+        "raw_linux_log_exported": false,
+        "interpretation": "ANS crash reported during Linux-managed teardown after verified warm reads, before any rebind. Missing namespace follows intentional unbind and is not a failed rebind result."
+      },
+      "manifest": {
+        "created_at": "2026-10-12",
+        "m1n1": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+          "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+          "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+          "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+        },
+        "expected_read_hashes": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "init_source_sha256": "e92221a4e3c4510c0cd56e0fde5f2fb3cb2d094b58658834d9a6685cf1137c30",
+        "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+        "kernel": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/Image.gz",
+          "sha256": "aeb4b1562c410084bd88280f6b0f036243f93d0396fa4672de9cdfd09b571fa7",
+          "bytes": 2944858
+        },
+        "dtb": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+          "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+          "bytes": 35374
+        },
+        "initramfs": {
+          "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-RUNTIME-20261012/final/initramfs.cpio.gz",
+          "sha256": "1f199d0cb9d8ca2df640ba328a817d884c51e29e8e5e7c285f77558ef1051aa4",
+          "bytes": 986613
+        },
+        "experiment": "R: warm Linux direct reads, one ANS unbind/rebind, direct reads of rebound namespace",
+        "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25",
+        "runtime_source_sha256": "7a424cd1bc01864782648efbf90660b48f2c290c9c8bdd358feb7e1b10dc19ec",
+        "runtime_controls": {
+          "target_device": "4c5cc0000.nvme",
+          "driver": "nvme-apple",
+          "required_compatible": "apple,t8132-nvme-ans2",
+          "unbind_maximum": 1,
+          "bind_maximum": 1,
+          "control_deadline_seconds": 90,
+          "direct_read_deadline_seconds": 90,
+          "namespace_deadline_seconds": 45,
+          "log_barrier_deadline_seconds": 5,
+          "mount_holder_identity_gates": true,
+          "device_renumbering_supported": true,
+          "retry_after_failure": false,
+          "required_namespace_id": 1,
+          "all_ans_namespaces_checked_for_mounts_and_holders": true,
+          "log_marker_newline_terminated": true
+        },
+        "attempt": 3
+      },
+      "payload_hashes": {
+        "kernel": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+        "initramfs": "1f199d0cb9d8ca2df640ba328a817d884c51e29e8e5e7c285f77558ef1051aa4",
+        "prepared-dtb": "e3ddabbb5794d2b6f1a4da5880cfa672af6fbdb895da567f725948d5659f6f19"
+      },
+      "evidence_sha256": {
+        "host-result.json": "e2f7a97b75e2a28709718e7a9093d49e7667c99b2b048557029f761f70156e5a",
+        "linux-result.json": "1df27fd28e7dd71161b60c7f36788cf56b523ad337f26c7d9956cc4b5e07c52e",
+        "manifest.json": "7c669b0da5a4e5b012382e1d3d50d0df099d838884fb3327aa2a963dd00f0d90",
+        "payload-hashes-after-cycle.json": "e59c11c4fd9e1909e68e45b72e0d1b75aba0f7286e60fa8d39a49919edcd69b7",
+        "payload-hashes-before-cycle.json": "e59c11c4fd9e1909e68e45b72e0d1b75aba0f7286e60fa8d39a49919edcd69b7",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "2f36c2f9ed5134fc30fe2e8eb306a95eb0313eae479699ebbde01b075f67aee0",
+        "prepared.dtb": "e3ddabbb5794d2b6f1a4da5880cfa672af6fbdb895da567f725948d5659f6f19",
+        "status-final.jpg": "63566f2557884cb9946934fb97ff59192871d11d9e145b57f192ccff49c5dfd8",
+        "status-initial.jpg": "36a7097bd8c7a72656e3c13c945872ca7d24b5eeaa375d58f0661ce8dec04ca3",
+        "trace-no-storage-cycle.bin": "adb6ea2652fd0137cc2a4b82253e3c5d7cadbc2a3545b7d3b5c7cbf60e2de93f",
+        "trace-no-storage-cycle.json": "9a1bea6231800f97150bf77366f0ac283d73599070c0e2bfab0299008df6d9f8",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      }
+    }
+  },
+  "conclusion": "Final run verifies five warm direct reads, completes one Linux unbind, then reports ANS crash and incomplete log capture before any bind. This reproduces an ANS crash in a Linux-managed teardown without an m1n1 storage cycle; rebind was not tested.",
+  "limitations": [
+    "The panel does not export which log check failed: sequence gap, filtered-log capacity, or read error.",
+    "A completed sysfs unbind does not prove the ignored RTKit shutdown result or power ACKs.",
+    "No raw Linux log, SART table after unbind, or fault-register context was exported.",
+    "The unbind/power-domain/device-managed cleanup transition differs from m1n1 shutdown. No single-operation causal attribution."
+  ],
+  "next_candidate": "Compare RTKit buffer release against CPU-stop/reset ordering. Linux apple_rtkit_shutdown reinitializes/releases buffers before apple_nvme_remove writes CPU control zero; m1n1 stops/resets before rtkit_free. Capture actual ACKs, release, CPU control and power-domain phases with explicit log-integrity diagnostics.",
+  "disk_write_commands_issued_by_init": 0,
+  "installed_bootloader_changed": false,
+  "pushed": false
+}

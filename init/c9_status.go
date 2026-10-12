@@ -1,6 +1,6 @@
 package main
 
-// C9 L0/L1: fixed framebuffer summary, aligned O_DIRECT reads, no disk writes.
+// C9: fixed framebuffer summary, aligned O_DIRECT reads, no disk writes.
 import (
 	"crypto/sha256"
 	"encoding/binary"
@@ -24,20 +24,32 @@ var expected = map[int64]string{
 }
 
 type report struct {
-	Cell        string
-	BootID      string
-	Status      string
-	Phase       string
-	Namespace   bool
-	Matched     int
-	Hashes      map[int64]string
-	Error       string
-	Branch      string
-	ANSCrash    bool
-	ResetError  string
-	KmsgRecords int
-	KmsgGaps    int
-	LogError    string
+	Cell              string
+	BootID            string
+	Status            string
+	Phase             string
+	Namespace         bool
+	Matched           int
+	Hashes            map[int64]string
+	Error             string
+	Branch            string
+	ANSCrash          bool
+	ResetError        string
+	KmsgRecords       int
+	KmsgGaps          int
+	LogError          string
+	Runtime           bool
+	BeforeMatched     int
+	BeforeHashes      map[int64]string
+	BeforeNamespace   string
+	AfterNamespace    string
+	UnbindResult      string
+	BindResult        string
+	Controllers       []string
+	ResetObservations []resetObservation
+	Marker            string
+	RuntimeLog        []string
+	RuntimeLogDropped int
 }
 
 var mu sync.Mutex
@@ -111,6 +123,9 @@ func parseLog(rec string, r *report, last *int64) {
 	*last = seq
 	r.KmsgRecords++
 	msg := rec[i+1:]
+	if r.Runtime {
+		parseRuntimeLog(msg, r)
+	}
 	// ACK/crash attribution is explicit: MTP cannot set ANSCrash or Branch.
 	if strings.Contains(msg, "nvme-apple 4c5cc0000.nvme:") {
 		if strings.Contains(msg, "co-processor has crashed") {
@@ -123,7 +138,7 @@ func parseLog(rec string, r *report, last *int64) {
 			}
 		}
 	}
-	if strings.Contains(msg, "nvme nvme0:") {
+	if !r.Runtime && strings.Contains(msg, "nvme nvme0:") {
 		if p := strings.Index(msg, "Reset failure status: "); p >= 0 {
 			words := strings.Fields(msg[p+22:])
 			if len(words) > 0 {
@@ -335,6 +350,16 @@ func lines(r report) []string {
 	if reset == "" {
 		reset = "NONE"
 	}
+	if r.Runtime {
+		u, b := r.UnbindResult, r.BindResult
+		if u == "" {
+			u = "NA"
+		}
+		if b == "" {
+			b = "NA"
+		}
+		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+	}
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }
 
@@ -351,9 +376,13 @@ func main() {
 			cell = strings.ReplaceAll(value, "-", " ")
 		}
 	}
-	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE"}
+	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R"}
 	go captureLog()
-	go testStorage()
+	if current.Runtime {
+		go testRuntime()
+	} else {
+		go testStorage()
+	}
 	tty, _ := syscall.Open("/dev/tty0", syscall.O_RDWR, 0)
 	if tty >= 0 {
 		_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(tty), 0x4b3a, 1)

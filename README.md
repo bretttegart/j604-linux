@@ -28,6 +28,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > [Grouped Linux parity](C9-PARITY-SESSION-2026-10-12.md): P0 warm PASS,
 > P1 cold FAIL with ANS crash/reset `-62` and no namespace after removing
 > EP7, the early controller-disable call and the extra decision branch.
+> [Linux runtime teardown](C9-RUNTIME-SESSION-2026-10-12.md): five warm reads
+> match; one unbind completes, then ANS crash is reported before bind.
+> The log-integrity check also fails; no rebind is attempted.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
@@ -43,7 +46,8 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > observation, not a proven cause. Full pager/video captures, delay sweeps,
 > IOP OFF and firmware restores are parked. A bounded fixed-screen camera
 > route is validated with the Nikon and replacement C920 webcam. Next:
-> Linux's own unbind/rebind after a verified warm boot, then direct reads.
+> compare Linux's buffer-release/CPU-stop ordering with m1n1, with explicit
+> log-integrity diagnostics and shutdown ACK capture.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -82,6 +86,9 @@ fbcon=nodefer`.
 - `C9-PARITY-SESSION-2026-10-12.md`, `C9-PARITY-RESULTS-2026-10-12.json`,
   `scripts/prepare-c9-parity.py` and `diagnostics/kernel-c9/c8-to-parity.patch`
   — grouped Linux parity; P0 warm PASS, P1 cold FAIL.
+- `C9-RUNTIME-SESSION-2026-10-12.md`, `C9-RUNTIME-RESULTS-2026-10-12.json`,
+  `init/c9_runtime.go`, `init/c9_runtime_test.go` and `scripts/build-c9-init.py`
+  — Linux-managed teardown crash after verified reads; no rebind attempted.
 - `C9-PRELOAD-SESSION-2026-10-12.md`, `C9-PRELOAD-RESULTS-2026-10-12.json`,
   `init/c9_status.go` and
   `scripts/run-c9-preload.py` — matched Linux RAM-preload comparison and

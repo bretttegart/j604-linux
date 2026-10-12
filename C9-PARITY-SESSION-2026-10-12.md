@@ -120,3 +120,6 @@ It tests a Linux-managed ownership transition rather than the m1n1-to-Linux
 handoff. The runtime path has different starting state/buffers, so either
 result needs that qualification. R is not prepared or executed in this run.
 SART/reset/buffer chronology can then target the transition that fails.
+The subsequent [R run](C9-RUNTIME-SESSION-2026-10-12.md) reached one unbind
+after five matching reads, then reported ANS crash and incomplete logs;
+bind was never attempted. See that record for the preparatory guard fixes.

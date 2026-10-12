@@ -38,7 +38,7 @@ def symbols(elf):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--cell", choices=["L0", "L1", "P0", "P1"], required=True)
+    ap.add_argument("--cell", choices=["L0", "L1", "P0", "P1", "R"], required=True)
     ap.add_argument("--manifest", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--proxyclient", type=Path, default=Path("/home/btega/bootloader/proxyclient"))
