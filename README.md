@@ -17,6 +17,8 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > m1n1 proxy restart cells both PASS, with matching block reads, captured
 > shutdown ACKs and preserved SART entries across reset. This establishes
 > restart in those measured m1n1 paths; Linux cold boot remains unresolved.
+> [Address-changing restart](C9-RELOCATE-SESSION-2026-10-12.md): FR also
+> PASS, with all three RTKit buffers at new, non-overlapping addresses.
 > [RAM-preload comparison](C9-PRELOAD-SESSION-2026-10-12.md): L0 PASS with
 > five matching O_DIRECT reads; L1 FAIL with cold ANS crash, reset `-62`
 > and no namespace. Both are verified by fixed-screen camera captures.
@@ -37,9 +39,8 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > [Firmware provenance](FIRMWARE-INVENTORY-2026-10-09.md) remains an
 > observation, not a proven cause. Full pager/video captures, delay sweeps,
 > IOP OFF and firmware restores are parked. A bounded fixed-screen camera
-> route is validated with the Nikon and replacement C920 webcam. Next
-> discriminator: m1n1 restart with changed RTKit buffer addresses; the
-> successful U/F restarts reused those addresses. This has not been run.
+> route is validated with the Nikon and replacement C920 webcam. Next:
+> grouped Linux parity kernel, with a warm control before its cold test.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -72,6 +73,9 @@ fbcon=nodefer`.
   snapshots, parity recommendation and bootloader shutdown audit.
 - `C9-RESTART-SESSION-2026-10-12.md` and `C9-RESTART-RESULTS-2026-10-12.json`
   — completed upstream/local proxy restart tests; both PASS.
+- `C9-RELOCATE-SESSION-2026-10-12.md`, `C9-RELOCATE-RESULTS-2026-10-12.json`
+  and `scripts/prepare-c9-relocate.py` — FR PASS with different RTKit buffers;
+  bounded temporary allocator-release experiment.
 - `C9-PRELOAD-SESSION-2026-10-12.md`, `C9-PRELOAD-RESULTS-2026-10-12.json`,
   `init/c9_status.go` and
   `scripts/run-c9-preload.py` — matched Linux RAM-preload comparison and

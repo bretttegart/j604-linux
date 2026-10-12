@@ -125,15 +125,17 @@ or that the local fork cannot perform a normal successful restart.
 They do not establish that every firmware state, uninstrumented path or
 Linux cold-start sequence works.
 
-The next useful distinction is **L0/L1** from the
-[C9 matrix](C9-REVIEW-2026-10-12.md): matched Linux RAM preload, first with
-no m1n1 NVMe use, then with one m1n1 read/shutdown cycle and direct handoff,
-without a second m1n1 init. That separates prior storage use from FAT/stage2
-loading and relocation. If L1 fails, compare Linux's reset/SART/buffer
-chronology with these successful m1n1 captures. If L1 passes while the
-existing chain boot fails, inspect the chain-specific state differences.
+The subsequent [L0/L1 comparison](C9-PRELOAD-SESSION-2026-10-12.md) completed:
+L0 PASS, L1 FAIL with cold ANS crash/reset `-62` and no namespace.
+This reproduces without FAT/stage2 loading or relocation, with Linux RAM
+payloads unchanged across a proven m1n1 storage cycle. The subsequent
+[FR cell](C9-RELOCATE-SESSION-2026-10-12.md) also passes m1n1 restart with
+new, non-overlapping RTKit buffers, so exact address reuse is not required
+for that measured restart. The next selected comparison is grouped Linux
+parity, with a warm control before its cold test.
 
 Linux cells need a demonstrated reporting route before execution:
 `console=tty0` and m1n1 USB teardown do not produce kernel logs over this
-proxy. Further camera/pager diagnostic boots remain parked. No Linux
-payload or parity experiment has been sent in C9.
+proxy. The owner later authorized bounded fixed-screen camera reporting;
+L0/L1 used that route. Pager/long-video captures remain parked. A raw Linux
+log has not been exported by this route; no parity kernel is built or booted.

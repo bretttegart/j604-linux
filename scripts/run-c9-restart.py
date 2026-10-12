@@ -20,11 +20,48 @@ KINDS = {
     9: "SLEEP_SWITCH", 10: "CPU_STOP", 11: "PMGR_ALIAS", 12: "PMGR_BEFORE",
     13: "PMGR_AFTER", 14: "RX", 15: "TX_BEGIN", 16: "TX_END", 17: "CRASH",
     18: "MAP", 19: "UNMAP", 20: "QUEUE", 21: "SART_TRACK",
+    22: "HOLD", 23: "HOLD_ARM",
 }
 
 
 class PhaseTimeout(Exception):
     pass
+
+
+def buffer_ranges(trace):
+    """Require the three successful ANS RTKit maps for the latest init."""
+    events = trace["events"]
+    begin = max(i for i, event in enumerate(events) if event["kind"] == "INIT_BEGIN")
+    maps = [event for event in events[begin:] if event["kind"] == "MAP"]
+    if len(maps) != 3 or sorted(event["b"] for event in maps) != [16384, 16384, 32768]:
+        raise ValueError("Expected exactly three RTKit buffers totalling 64 KiB")
+    if any(event["result"] != 1 or event["a"] != event["c"] or event["a"] & 0x3fff for event in maps):
+        raise ValueError("Invalid RTKit physical mapping")
+    ranges = [(event["a"], event["b"]) for event in maps]
+    if any(a < b + m and b < a + n for i, (a, n) in enumerate(ranges)
+           for b, m in ranges[i+1:]):
+        raise ValueError("Overlapping RTKit buffers")
+    return ranges
+
+
+def retained_findings(trace, first):
+    holds = [event for event in trace["events"] if event["kind"] == "HOLD"]
+    arms = [event for event in trace["events"] if event["kind"] == "HOLD_ARM"]
+    if len(arms) != 1 or arms[0]["result"] != 1:
+        raise ValueError("Missing one-shot retention arm")
+    if (len(holds) != 3 or any(event["result"] != 1 for event in holds)
+            or sorted((event["a"], event["b"]) for event in holds) != sorted(first)):
+        raise ValueError("Old RTKit buffers were not all retained")
+    return {"bytes": sum(size for _, size in first), "buffers": len(holds)}
+
+
+def relocation_findings(first, second):
+    if sorted(size for _, size in first) != sorted(size for _, size in second):
+        raise ValueError("RTKit buffer sizes differ across restart")
+    if any(a < b + m and b < a + n for a, n in first for b, m in second):
+        raise ValueError("Replacement RTKit buffer overlaps an old buffer")
+    return {"pass": True, "first": [{"address": hex(a), "bytes": n} for a, n in first],
+            "second": [{"address": hex(a), "bytes": n} for a, n in second]}
 
 
 def decode(raw):
@@ -107,6 +144,13 @@ def run(args):
     if not args.manifest or not args.output:
         raise ValueError("A manifest and new output directory are required")
     manifest = json.loads(args.manifest.read_text())
+    relocate = args.relocate_buffers
+    if relocate and manifest["variant"] != "C9-LOCAL-R":
+        raise ValueError("Relocation requires the bounded retention image")
+    if not relocate and manifest["variant"] == "C9-LOCAL-R":
+        raise ValueError("Retention image requires --relocate-buffers")
+    if hashlib.sha256(Path(manifest["raw_binary"]).read_bytes()).hexdigest() != manifest["raw_binary_sha256"]:
+        raise ValueError("Temporary m1n1 image differs from manifest")
     device = os.environ.get("M1N1DEVICE", "/dev/m1n1")
     if not Path(device).exists():
         raise ValueError(f"Missing proxy: {device}")
@@ -125,6 +169,7 @@ def run(args):
     result = {"started_at": datetime.now().astimezone().isoformat(),
               "variant": manifest["variant"], "device": device, "reads": {},
               "disk_write_commands": 0, "status": "RUNNING"}
+    result["relocate_buffers"] = relocate
 
     def alarm_handler(signum, frame):
         raise PhaseTimeout(f"Host deadline at {phase}; target code may still be running")
@@ -227,8 +272,14 @@ def run(args):
         if ok != 1 or any(event["kind"] == "CRASH" for event in first_trace["events"]):
             raise ValueError("First init failed; this does not test restart")
         first = read_set("first", buffer)
+        if manifest.get("expected_read_hashes") and first != manifest["expected_read_hashes"]:
+            raise ValueError("First reads differ from saved C9 reference hashes")
         operation("snapshot-first-reads", lambda: proxy.request(0xf04, 2, 10))
-        save_trace("first-reads")
+        first_reads_trace = save_trace("first-reads")
+        if relocate:
+            first_ranges = buffer_ranges(first_reads_trace)
+            if operation("arm-buffer-retention", lambda: proxy.request(0xf04, 3)) != 1:
+                raise ValueError("Could not arm one-shot retention")
         operation("shutdown", proxy.nvme_shutdown, seconds=45)
         shutdown_trace = save_trace("shutdown")
         findings = shutdown_findings(shutdown_trace)
@@ -236,6 +287,8 @@ def run(args):
         phase = "shutdown"
         if not findings["pass"]:
             raise ValueError("Shutdown not proven: " + "; ".join(findings["issues"]))
+        if relocate:
+            result["retention"] = retained_findings(shutdown_trace, first_ranges)
         ok = operation("second-init", proxy.nvme_init, seconds=45)
         second_trace = save_trace("second-init")
         phase = "second-init"
@@ -244,6 +297,8 @@ def run(args):
             raise ValueError("Second init failed or was an already-initialized no-op")
         if any(event["kind"] == "CRASH" for event in second_trace["events"]):
             raise ValueError("ANS crash during restart")
+        if relocate:
+            result["relocation"] = relocation_findings(first_ranges, buffer_ranges(second_trace))
         second = read_set("second", buffer)
         operation("snapshot-second-reads", lambda: proxy.request(0xf04, 2, 30))
         save_trace("second-reads")
@@ -251,8 +306,7 @@ def run(args):
             raise ValueError("Block hashes changed across restart")
         result["status"] = "PASS"
         result["phase"] = "complete"
-        # Deliberately leave this successful ANS instance running. F needs a
-        # fresh iBoot/LabOS session, not another shutdown here.
+        # Leave successful ANS running; any next cell needs a fresh LabOS boot.
     except Exception as error:
         result.update(status="FAIL", phase=phase, error=f"{type(error).__name__}: {error}",
                       host_deadline=timed_out)
@@ -273,6 +327,8 @@ def main():
     parser.add_argument("--proxyclient", type=Path, default=Path("/home/btega/bootloader/proxyclient"))
     parser.add_argument("--manifest", type=Path)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--relocate-buffers", action="store_true",
+                        help="retain old buffers through shutdown and require non-overlapping replacements")
     parser.add_argument("--decode", type=Path, help="decode a saved store offline; never open serial")
     args = parser.parse_args()
     if args.decode:

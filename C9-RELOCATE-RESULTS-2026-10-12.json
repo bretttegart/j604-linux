@@ -1,0 +1,234 @@
+{
+  "date": "2026-10-12",
+  "cell": "FR",
+  "result": {
+    "started_at": "2026-10-12T13:04:06.659293-06:00",
+    "variant": "C9-LOCAL-R",
+    "device": "/dev/m1n1",
+    "reads": {
+      "first": {
+        "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+        "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+        "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+        "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+        "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+      },
+      "second": {
+        "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+        "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+        "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+        "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+        "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+      }
+    },
+    "disk_write_commands": 0,
+    "status": "PASS",
+    "relocate_buffers": true,
+    "adt_sha256": "237df5466de47c8f090592cbc44234413522a298138dd4c45604041aa66019b7",
+    "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+    "read_buffer": "0x10007198000",
+    "shutdown": {
+      "pass": true,
+      "issues": [],
+      "reset_aliases": [
+        {
+          "index": 203,
+          "ticks": 309225022853,
+          "kind": "PMGR_ALIAS",
+          "result": 0,
+          "a": 22,
+          "b": 0,
+          "c": 0,
+          "d": 0
+        },
+        {
+          "index": 204,
+          "ticks": 309239852980,
+          "kind": "PMGR_ALIAS",
+          "result": -1,
+          "a": 23,
+          "b": 0,
+          "c": 0,
+          "d": 0
+        }
+      ]
+    },
+    "retention": {
+      "bytes": 65536,
+      "buffers": 3
+    },
+    "relocation": {
+      "pass": true,
+      "first": [
+        {
+          "address": "0x100071b8000",
+          "bytes": 32768
+        },
+        {
+          "address": "0x100071c4000",
+          "bytes": 16384
+        },
+        {
+          "address": "0x100071cc000",
+          "bytes": 16384
+        }
+      ],
+      "second": [
+        {
+          "address": "0x100071d4000",
+          "bytes": 32768
+        },
+        {
+          "address": "0x100071e0000",
+          "bytes": 16384
+        },
+        {
+          "address": "0x100071e8000",
+          "bytes": 16384
+        }
+      ]
+    },
+    "phase": "complete",
+    "finished_at": "2026-10-12T13:04:07.907423-06:00"
+  },
+  "analysis": {
+    "trace_events": 380,
+    "sart_snapshots": 15,
+    "event_dropped": 0,
+    "snapshot_dropped": 0,
+    "m1n1_ans_crashes": 0,
+    "sart_stable_reads": true,
+    "protected_slots": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      6
+    ],
+    "protected_slots_preserved_all_measured_phases": true,
+    "sart_unchanged_across_sleep_and_resolved_reset": true,
+    "old_rtkit_slots_removed_before_reinit": [
+      5,
+      7,
+      8
+    ],
+    "replacement_rtkit_slots": [
+      5,
+      7,
+      8
+    ],
+    "replacement_slot_addresses_match_observed_maps": true,
+    "unresolved_ans2_snapshot_status": 2,
+    "ep7_started_or_received": false,
+    "fresh_ans_manifest_matches_original_F": true,
+    "prior_U_F_decoder_shutdown_compatibility": "PASS"
+  },
+  "manifest": {
+    "variant": "C9-LOCAL-R",
+    "source_base": "9e24b8751bd5064c5d37ec1bbbae6ee85caabbfd",
+    "source_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-RELOCATE-20261012/local-src",
+    "source_hashes": {
+      "Makefile": "e1bc1c99fa3264a5209e8ac22266714e42ed7b2a6c1a7ab148af5bf8dd777f17",
+      "src/nvme.c": "1cdf9da14beeaa98c2496f05c77fa3d4af5bb05c5c8eec09370a69179c7f18d6",
+      "src/rtkit.c": "df0d8a50adf233bff1e68c11d3f6024ef9626ced5cca726e2b089813ed0364ba",
+      "src/asc.c": "09d1850e520be7b4449ac25046bfe3aff25a83e9bb4dfc76ebef69dea1b9515a",
+      "src/pmgr.c": "3149aa43fcb9fbbc4b773ac98a9eff7f34e7687ab72d8dd8ebe5a7bf4145063d",
+      "src/sart.c": "a2658538d53e17f4f56cb2d4da997f7c7977d84f15aa7979903910058b1c245a",
+      "src/proxy.c": "1dc6c57bc88bc92e9f18bb71117cf4d418fab224c195ebedb71d2e33ae400e98",
+      "src/c9diag.c": "1413019f3db7cb672342ea838c27a2af49a99b4d71cddbcaa8bb99ccbcc8908f",
+      "src/c9diag.h": "86e19249e0fdf9c4cd62d08142783ed9b9a007d401bf9ea2e2912f9b401ac58f"
+    },
+    "build_flags": [
+      "USE_CLANG=1",
+      "CHAINLOADING=1",
+      "EXTRA_CFLAGS=-DNO_DISPLAY",
+      "RUSTFLAGS=-C llvm-args=-disable-loop-idiom-wcslen"
+    ],
+    "raw_binary": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-RELOCATE-20261012/local-src/build/m1n1.bin",
+    "raw_binary_sha256": "596d97e87303843ef30940e26ecacc0c1263b2a203e5662c3f5638f929910add",
+    "raw_binary_bytes": 3932160,
+    "diagnostic_patch_sha256": "d80ccc094f2f6ff2f6f7285237c494cf53b95b201151c9ae3556da9d39d385b9",
+    "read_lbas": [
+      0,
+      1,
+      2,
+      128,
+      4096
+    ],
+    "controller_power_reset_behavior_changed": false,
+    "local_historical_error_cleanup_preserved": true,
+    "capture_mmio_reads_added": true,
+    "native_sanitizer_check": "PASS: real release hook unmaps normally, ANS-only one-shot retention, invalid inputs, failed-unmap exclusion, 3-buffer/64-KiB cap, original return preserved, unchanged ABI",
+    "host_decoder_checks": {
+      "status": "PASS",
+      "checks": 7,
+      "scope": "Actual buffer-map extraction; old/partial overlap, missing/failed maps, incomplete retention rejection",
+      "hardware_opened": false
+    },
+    "loader": "chainload.py -n -r; no boot variables or embedded OS payloads",
+    "disk_write_commands": 0,
+    "version_label": "C9-FR-9e24b875-hold1",
+    "baseline_manifest": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/manifest-local.json",
+    "baseline_raw_binary_sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+    "buffer_retention": {
+      "arm": "selector 3 after successful first init/read and before shutdown",
+      "scope": "nvme RTKit buffers after normal unmap",
+      "maximum_buffers": 3,
+      "maximum_bytes": 65536,
+      "release": "fresh reboot",
+      "controller_power_reset_behavior_changed": false
+    },
+    "expected_read_hashes": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    }
+  },
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-RELOCATE-20261012",
+  "evidence_sha256": {
+    "adt.bin": "237df5466de47c8f090592cbc44234413522a298138dd4c45604041aa66019b7",
+    "bootargs.bin": "4fd8d7fe7ccb207a455aeca64f819849e1a61f080adac3cac76bbcbba0a7a912",
+    "evidence-analysis.json": "e56d4e82ffbe99c31a97d7c66c8ac141fdd3d1c7b8d6c352055b06cfb6b78100",
+    "first-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+    "first-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+    "first-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+    "first-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+    "first-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+    "manifest.json": "826706b865c2049d071c781f8547a4f3b69aeb3757b35d7c986320d3b1a58b73",
+    "phase.txt": "fd4f5cf462261d25fc547088776b0ca2fca9168119c7279174b12592cfb2d706",
+    "result.json": "26a9189d8ba94ff0fe5b9e6376d3344e5c2c9efd1950f83f249f6e28b1a2bc3e",
+    "second-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+    "second-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+    "second-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+    "second-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+    "second-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+    "trace-before-init.bin": "90f98f4c5bd4664df73dd58e708b6c6ecb5ec4d97815c3d29513179bbe12871b",
+    "trace-before-init.json": "f1631d9753a797502069c07f8344bb3a78d0e0ff0c0bd4791ff56ea0ec45eb64",
+    "trace-first-init.bin": "bda12b5d8447c3ca44333b41dbb548a127008bbad02ff4e628ebaec4e381931e",
+    "trace-first-init.json": "fe56cc09c0197c4093610e55650aa79167bc8389ecf5972d6168db10ac96adff",
+    "trace-first-reads.bin": "e21f8203dd453b11e7889eaad350813c58e9421787a34d98e8c291f083407960",
+    "trace-first-reads.json": "4166216504326a6568db767c95bb44cd2ffcc242ace24f6e7cdc58e4abe42e5a",
+    "trace-preflight.bin": "8a3793176b9c98d77a10c3045307bc99e11bc2b8d1ac9727203b7fc1e215e106",
+    "trace-preflight.json": "b782b4eadd951444862ac65b372bd0faee0e3fdc69e32fd787b9d878d25f1ab5",
+    "trace-second-init.bin": "2e4dee40621789b0c5aa6e987468e07c2c0748f5b703d259a7238a49dc2009ec",
+    "trace-second-init.json": "1d93befc1e1e0a1161aa0556bd4565a16b1f5bd8f0b5e1e580f2cacbd1cc5ed5",
+    "trace-second-reads.bin": "b1596ad511448412bd721bce6f133c9172b11a3517aa6593d3a3fbe86cbd2cc8",
+    "trace-second-reads.json": "4173520611e5fc57e2b7b9c58efa52a693404bba4a14c09a7cd56294988f8806",
+    "trace-shutdown.bin": "10266f73c519ab1948cacf7065656f1b5b2a0a56f16390aba6c63e912dd65063",
+    "trace-shutdown.json": "ea50b5e88adc7f1518ffc3d7d842168a42caed4851a4573090273b7ebc971937"
+  },
+  "conclusion": "Observed m1n1 restart does not require reuse of the three RTKit buffer physical intervals. Linux cold restart failure remains unresolved.",
+  "limitations": [
+    "Temporary image retains old 64-KiB allocations until reboot; it is a bounded experiment, not a production allocator fix.",
+    "Old backing memory remains allocated; this does not exclude every possible stale-state defect.",
+    "Retaining allocations can change other heap placements. No claim that only three addresses differ.",
+    "No Linux payload booted in FR; Linux L0/L1 results are separate."
+  ],
+  "disk_write_commands": 0,
+  "installed_bootloader_changed": false,
+  "pushed": false,
+  "allocator_release_behavior_changed": true
+}

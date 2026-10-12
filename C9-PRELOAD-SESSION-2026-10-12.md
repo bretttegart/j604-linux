@@ -172,7 +172,8 @@ their first and second init reused the exact same three RTKit buffer
 physical intervals. Their PASS results therefore do not yet test a restart
 that relocates those buffers. This is a capture fact, not proof of a stale
 buffer defect. An address-changing m1n1 restart would be a useful later
-discriminator now that L1 fails; it has not been run. It can test whether
-the successful m1n1 restart depends on retaining buffer addresses before
-selecting a Linux RTKit/EP7 parity experiment. No installed bootloader
-replacement is needed for that proxy experiment.
+discriminator now that L1 fails. The subsequent
+[FR cell passed](C9-RELOCATE-SESSION-2026-10-12.md) with all three buffers
+at new, non-overlapping intervals; the measured m1n1 restart does not need
+exact address reuse. The next selected comparison is a grouped Linux
+RTKit/EP7 parity screen, with a warm control before its cold test.
