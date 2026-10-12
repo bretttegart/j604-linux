@@ -1,7 +1,7 @@
 {
   "date": "2026-10-12",
   "cell": "C9 R (ordering diagnostic)",
-  "status": "TWO ORDERING RUNS COMPLETE; THIRD DIAGNOSTIC INITRAMFS PREPARED, AWAITING FRESH PROXY",
+  "status": "THREE ORDERING RUNS COMPLETE; MAILBOX RECEIVE TRACE IS NEXT",
   "experiment": "R-order: warm reads, one ANS unbind; AP QUIESCED/IOP SLEEP, CPU stop, RTKit reinit/buffer release, power-domain detach; then bind and verify reads",
   "kernel_change": "Targeted remove path stops ANS coprocessor before RTKit reinit and shared-buffer release; logs phase returns and CPU/boot state. Other shutdown/suspend paths unchanged.",
   "panel_fields": [
@@ -208,10 +208,76 @@
     "interpretation": "AP QUIESCED was acknowledged, but no IOP SLEEP ACK was observed and shutdown_prepare returned -ETIME (-62). CPU stop ran; RTKit reinit was skipped. The verifier halted before bind on the crash flag."
   },
   "third_run": {
-    "manifest": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN3-MANIFEST.json",
     "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN3-RESULT",
-    "status": "PREPARED, AWAITING FRESH PROXY",
-    "change": "screen includes IOP SLEEP management-send return to distinguish send failure from ACK timeout",
-    "kernel": "same ordered-remove diagnostic image"
+    "captured_at": "2026-10-12T14:12 MDT",
+    "boot_status": "BOOT_REQUEST_ACKNOWLEDGED",
+    "kboot_return": 0,
+    "m1n1_init_events": 0,
+    "payload_readback_unchanged": true,
+    "before_reads": "5/5 match",
+    "after_reads": "0/5; no rebind attempted",
+    "unbind": "OK",
+    "bind": "not attempted",
+    "panel": {
+      "status": "FAIL",
+      "ans_branch": "3",
+      "ans_crash": "YES",
+      "reset": "NONE",
+      "namespace": "NO after intentional unbind",
+      "ap_quiesced_ack": "YES",
+      "iop_sleep_mailbox_tx_return": 0,
+      "iop_sleep_ack": "NO within 1s",
+      "shutdown_prepare_return": -62,
+      "cpu_control": "0x00000000",
+      "boot_status": "0x00000000",
+      "rtkit_reinit": "not called",
+      "teardown": "GENPD END",
+      "log_gaps": 0,
+      "runtime_log_dropped": 0,
+      "log_reader_error": "NONE",
+      "phase": "CHECK UNBOUND",
+      "error": "CRASH DURING UNBIND"
+    },
+    "frame_sha256": "32b7614782c9a58374e0828eca471a3f71c558d6e5511db9738270fa25ff693d",
+    "interpretation": "mailbox accepted IOP SLEEP send (return 0), but Linux observed no IOP sleep ACK before 1-second timeout; no cause established for absent ACK or crash notification"
+  },
+  "fourth_run": {
+    "status": "PLANNED, NOT BUILT",
+    "next": "capture bounded RTKit receive/management trace after accepted IOP SLEEP TX through -ETIME timeout, including crash notification; no power request change or retry",
+    "next_steps": [
+      "In disposable kernel source, keep RTKit diagnostic ring open past NVME_READY.",
+      "After IOP SLEEP wait returns and CPU_CONTROL is stopped, freeze and summarize bounded endpoint-0 receives from send through timeout, with message type/value and crash timing.",
+      "Keep receive-path collection allocation-free and free of printk; preserve power requests, timeout and ordering, with no retries or rebind after crash.",
+      "Compare raw receive trace with m1n1 sequence; investigate ACK callback/completion if raw ACK exists, otherwise continue firmware/state investigation.",
+      "Only revisit RTKit reinit/buffer-release ordering after locating the missing ACK."
+    ]
+  },
+  "m1n1_comparison": {
+    "runs": [
+      "upstream F",
+      "local U",
+      "relocated FR"
+    ],
+    "trace_drops": 0,
+    "endpoint": 0,
+    "sequence": [
+      {
+        "direction": "TX then RX ACK",
+        "name": "AP power transition",
+        "type": 11,
+        "state": "0x10",
+        "message": "00b0000000000010"
+      },
+      {
+        "direction": "TX then RX ACK",
+        "name": "IOP SLEEP",
+        "type": 6,
+        "state": 1,
+        "message": "0060000000000001",
+        "ack_type": 7,
+        "ack_message": "0070000000000001"
+      }
+    ],
+    "interpretation": "Successful m1n1 traces show expected exchange; Linux run 3 logged mailbox send return 0 but no parsed IOP ACK. This does not identify whether firmware failed to respond or Linux failed to receive/process it."
   }
 }

@@ -68,8 +68,58 @@ changes the crash outcome, because `apple_rtkit_shutdown_prepare()` returned
 before RTKit reinit. The code waits one second for each RTKit power ACK, and
 the source maps a missing IOP ACK to `-ETIME`. The next small diagnostic adds
 the management-send return for the IOP SLEEP request, to tell whether the
-request was accepted by the mailbox before waiting for the ACK. Its initramfs
-is ready under the same artifact directory; the kernel image is unchanged.
+request was accepted by the mailbox before waiting for the ACK.
+
+## Third run
+
+The third image was run at 14:12 MDT, again from a fresh proxy. The handoff
+returned 0, with no m1n1 NVMe init and unchanged payloads. The five warm reads
+matched and one unbind completed. The panel reported IOP SLEEP TX `0`, no IOP
+SLEEP ACK, and shutdown prepare `-62`. It also reported AP QUIESCED ACK `YES`,
+ANS crash `YES`, CPU_CONTROL `0`, zero log gaps/drops and no reader error.
+The crash gate stopped before bind; RTKit reinit was not called.
+
+This confirms the mailbox accepted the outgoing IOP SLEEP request, but Linux
+did not observe its ACK within the one-second wait. It does not establish
+whether firmware failed to generate the ACK, Linux missed it, or the crash
+notification interrupted progress. The buffer-release ordering hypothesis
+remains untested because the shutdown handshake returns before reinit.
+
+The next diagnostic will preserve a compact RTKit mailbox trace from the
+IOP SLEEP request through the timeout, including incoming management messages
+and crash notifications. It will not change power requests or retry the
+transition. The third run's fixed-screen capture and host traces are saved
+under the run directory in the results file; no rebind was attempted.
+
+## Comparison and next steps
+
+The successful m1n1 shutdown traces from upstream F, local U and relocated FR
+all contain the same endpoint-0 Management sequence, with no trace drops:
+AP power-state request (type 11, state `0x10`, message
+`00b0000000000010`), AP ACK, IOP SLEEP request (type 6, state 1, message
+`0060000000000001`), then IOP SLEEP ACK (type 7, state 1, message
+`0070000000000001`). Linux's third run logged a successful mailbox send for
+the same IOP SLEEP request but no parsed ACK before timeout. The m1n1 traces
+show what a successful exchange looks like; they do not prove that Linux
+received the same response or that firmware behavior was identical.
+
+The next kernel should keep the power-management requests, timeout and
+ordering semantics unchanged. In the disposable kernel tree, keep the RTKit
+diagnostic ring open after NVME_READY, then freeze it only after the IOP SLEEP
+wait returns and CPU_CONTROL has been stopped. Emit a bounded summary of
+endpoint-0 receives between the IOP SLEEP send and `-ETIME`, including message
+type/value and crash-notification timing. Keep collection allocation-free in
+the receive path and avoid printk there; summarize after the wait so the
+instrumentation does not delay the handshake. Do not retry the request or
+attempt rebind after the crash gate.
+
+Interpret the next capture against the m1n1 sequence: an IOP ACK in the raw
+receive ring without a Linux ACK callback points toward receive/workqueue or
+completion handling; no IOP ACK, with only a crash message or no receive,
+points toward further firmware/state investigation. Only after locating the
+missing ACK should we revisit RTKit reinit and buffer-release ordering. A
+fresh LabOS proxy is required for that run; the existing proxy bootloader can
+continue to be used, and no bootloader installation is part of this test.
 
 Artifacts and hashes are recorded in
 [`C9-ORDER-RESULTS-2026-10-12.json`](C9-ORDER-RESULTS-2026-10-12.json) and

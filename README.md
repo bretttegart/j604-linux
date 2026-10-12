@@ -32,9 +32,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > match; one unbind completes, then ANS crash is reported before bind.
 > The log-integrity check also fails; no rebind is attempted.
 > [Teardown ordering experiment](C9-ORDER-SESSION-2026-10-12.md): a diagnostic
-> two runs found AP QUIESCED ACK but no IOP SLEEP ACK; shutdown returned
-> `-ETIME`, so RTKit reinit and bind were skipped. A third run will report the
-> IOP management-send return before determining whether the mailbox accepted it.
+> three runs found AP QUIESCED ACK and an accepted IOP SLEEP send, but no IOP
+> SLEEP ACK before `-ETIME`; RTKit reinit and bind were skipped. The next
+> diagnostic captures RTKit receives through the timeout.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
