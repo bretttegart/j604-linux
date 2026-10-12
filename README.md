@@ -13,6 +13,12 @@ unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
 > **Start here (Oct 12):** [C9 review](C9-REVIEW-2026-10-12.md) contains
 > the verified source comparison, restart matrix and SART capture protocol.
+> **Latest:** [E5 live handoff](C9-E5-SESSION-2026-10-12.md) reproduces
+> the Linux sleep crash after a proven m1n1 restart, keeping ANS running
+> and reserving all nine retained allocations. Linux still renegotiates
+> RTKit, so state changed during takeover remains open. Its crashlog
+> repeats [X1](C9-X1-SESSION-2026-10-12.md)'s warm SError/FAR signature.
+> An absent ADT register range does not prove a missing firmware mapping.
 > [C9 hardware results](C9-RESTART-SESSION-2026-10-12.md): upstream and local
 > m1n1 proxy restart cells both PASS, with matching block reads, captured
 > shutdown ACKs and preserved SART entries across reset. This establishes

@@ -1,0 +1,169 @@
+--- a/src/nvme.h
++++ b/src/nvme.h
+@@ -7,6 +7,8 @@
+ 
+ bool nvme_init(void);
+ void nvme_shutdown(void);
++bool nvme_c9_live_handoff(void);
++bool nvme_c9_live_armed(void);
+ 
+ bool nvme_flush(u32 nsid);
+ bool nvme_read(u32 nsid, u64 lba, void *buffer);
+--- a/src/nvme.c
++++ b/src/nvme.c
+@@ -593,8 +593,51 @@
+     return ret;
+ }
+ 
++/* E5: retain the stopped controller's allocations and a running IOP.
++ * No buffers, SART slots, CPU state or PMGR state are released/reset.
++ * The prepared FDT reserves every current MAP/QUEUE allocation.
++ */
++static bool c9_live_attempted, c9_live_armed;
++
++bool nvme_c9_live_armed(void) { return c9_live_armed; }
++
++bool nvme_c9_live_handoff(void)
++{
++    if (c9_live_attempted || !nvme_initialized || !nvme_asc || !nvme_rtkit)
++        return false;
++    c9_live_attempted = true;
++    struct nvme_command cmd = {0};
++    cmd.opcode = NVME_ADMIN_CMD_DELETE_SQ;
++    cmd.cdw10 = 1;
++    if (!c9_delete(&cmd))
++        return false;
++    cmd.opcode = NVME_ADMIN_CMD_DELETE_CQ;
++    if (!c9_delete(&cmd) || !c9_ctrl_shutdown() || !c9_ctrl_disable())
++        return false;
++    /* Unlike sleep, quiesce leaves the ASC CPU running. Both ACKs are
++     * captured by the existing trace; the Boolean is checked directly. */
++    if (!rtkit_quiesce(nvme_rtkit) || !asc_cpu_running(nvme_asc) ||
++        read32(nvme_base + NVME_BOOT_STATUS) != NVME_BOOT_STATUS_OK ||
++        (read32(nvme_base + NVME_CC) & NVME_CC_EN) ||
++        (read32(nvme_base + NVME_CSTS) & NVME_CSTS_RDY))
++        return false;
++    c9_live_armed = true;
++    c9_diag_snapshot(30);
++    c9_diag_event(C9_LIVE_ARM, 1, read32(nvme_base + NVME_CC),
++                  read32(nvme_base + NVME_CSTS),
++                  read32(nvme_base + NVME_BOOT_STATUS), 0);
++    return true;
++}
++
+ void nvme_shutdown(void)
+ {
++    if (c9_live_armed) {
++        if (!asc_cpu_running(nvme_asc) ||
++            read32(nvme_base + NVME_BOOT_STATUS) != NVME_BOOT_STATUS_OK)
++            panic("E5: retained ANS stopped before kernel handoff\n");
++        printf("E5: retain live ANS, buffers and SART mappings\n");
++        return;
++    }
+     c9_diag_event(C9_SHUT_BEGIN, 0, nvme_initialized, 0, 0, 0);
+     shaud_shutdown_calls++;
+     if (!nvme_initialized) {
+--- a/src/proxy.c
++++ b/src/proxy.c
+@@ -591,6 +591,9 @@
+         case 0xf04: /* C9 diagnostic store; no disk operations */
+             reply->retval = c9_diag_get(request->args[0], request->args[1]);
+             break;
++        case 0xf05: /* One-shot E5 controller quiesce / live retention */
++            reply->retval = nvme_c9_live_handoff();
++            break;
+         case P_NVME_INIT:
+             reply->retval = nvme_init();
+             break;
+--- a/src/c9diag.h
++++ b/src/c9diag.h
+@@ -9,6 +9,7 @@
+     C9_SLEEP_SWITCH, C9_CPU_STOP, C9_PMGR_ALIAS, C9_PMGR_BEFORE,
+     C9_PMGR_AFTER, C9_RX, C9_TX_BEGIN, C9_TX_END, C9_CRASH,
+     C9_MAP, C9_UNMAP, C9_QUEUE, C9_SART_TRACK,
++    C9_LIVE_ARM = 24, C9_LIVE_RESERVE,
+ };
+ 
+ void c9_diag_event(u32 kind, s32 result, u64 a, u64 b, u64 c, u64 d);
+@@ -18,5 +19,6 @@
+ void c9_diag_sart_track(u64 base, u32 version, u32 protected_mask);
+ void c9_diag_snapshot(u32 phase);
+ void c9_diag_skip_snapshot(u32 phase, u32 reason);
++int c9_diag_reserve_live(void *fdt);
+ u64 c9_diag_get(u64 selector, u64 phase);
+ #endif
+--- a/src/c9diag.c
++++ b/src/c9diag.c
+@@ -3,11 +3,13 @@
+ #include "adt.h"
+ #include "c9diag.h"
+ #include "utils.h"
++#include "nvme.h"
++#include "libfdt/libfdt.h"
+ 
+ #define C9_EVENT_CAP 1024
+ #define C9_SNAPSHOT_CAP 32
+ #ifndef C9_VARIANT
+-#define C9_VARIANT "C9-LOCAL"
++#define C9_VARIANT "C9-LOCAL-E5"
+ #endif
+ 
+ struct c9_event {
+@@ -119,6 +121,37 @@
+     snapshot->status = reason ? reason : 1;
+ }
+ 
++int c9_diag_reserve_live(void *fdt)
++{
++    if (!nvme_c9_live_armed())
++        return 0;
++    if (store.event_dropped || store.snapshot_dropped)
++        return -1;
++    u32 begin = 0, maps = 0, queues = 0, end = store.events;
++    for (u32 i = 0; i < end; i++)
++        if (store.event[i].kind == C9_INIT_BEGIN)
++            begin = i;
++    for (u32 i = begin; i < end; i++) {
++        struct c9_event *e = &store.event[i];
++        if (e->kind != C9_MAP && e->kind != C9_QUEUE)
++            continue;
++        if (!e->a || !e->b || (e->a & 0x3fff) || e->b > 0x8000)
++            return -1;
++        if (e->kind == C9_MAP) {
++            if (e->result != 1 || e->a != e->c)
++                return -1;
++            maps++;
++        } else {
++            queues++;
++        }
++        u64 size = (e->b + 0x3fff) & ~0x3fffUL;
++        if (fdt_add_mem_rsv(fdt, e->a, size))
++            return -1;
++        c9_diag_event(C9_LIVE_RESERVE, 1, e->a, size, e->kind, 0);
++    }
++    return maps == 3 && queues == 6 ? 0 : -1;
++}
++
+ u64 c9_diag_get(u64 selector, u64 phase)
+ {
+     if (selector == 0)
+--- a/src/kboot.c
++++ b/src/kboot.c
+@@ -4,6 +4,7 @@
+ 
+ #include "kboot.h"
+ #include "adt.h"
++#include "c9diag.h"
+ #include "assert.h"
+ #include "clk.h"
+ #include "dapf.h"
+@@ -2953,6 +2954,9 @@
+     if (dt_set_memory())
+         return -1;
+ 
++    if (c9_diag_reserve_live(dt))
++        bail("E5: could not reserve retained ANS allocations\n");
++
+     if (fdt_pack(dt))
+         bail("FDT: fdt_pack() failed\n");
+ 

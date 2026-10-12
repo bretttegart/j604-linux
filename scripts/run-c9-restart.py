@@ -21,6 +21,7 @@ KINDS = {
     13: "PMGR_AFTER", 14: "RX", 15: "TX_BEGIN", 16: "TX_END", 17: "CRASH",
     18: "MAP", 19: "UNMAP", 20: "QUEUE", 21: "SART_TRACK",
     22: "HOLD", 23: "HOLD_ARM",
+    24: "LIVE_ARM", 25: "LIVE_RESERVE",
 }
 
 

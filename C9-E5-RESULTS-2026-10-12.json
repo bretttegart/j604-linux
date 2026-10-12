@@ -1,0 +1,538 @@
+{
+  "date": "2026-10-12",
+  "cell": "E5",
+  "linux_result": "FAIL",
+  "host": {
+    "cell": "E5",
+    "started_at": "2026-10-12T17:09:32.314554-06:00",
+    "status": "BOOT_REQUEST_ACKNOWLEDGED",
+    "disk_write_commands": 0,
+    "regions": {
+      "kernel": {
+        "address": 1099796840448,
+        "bytes": 10686976
+      },
+      "initramfs": {
+        "address": 1100333711360,
+        "bytes": 1028596
+      },
+      "prepared-dtb": {
+        "address": 1099658788864,
+        "bytes": 37196
+      }
+    },
+    "m1n1_base": "0x10005ba4000",
+    "host_heap": {
+      "base": "0x10010c58000",
+      "end": "0x10050c58000"
+    },
+    "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+    "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-E5",
+    "read_buffer": "0x10008c7c000",
+    "m1n1_reads": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "shutdown": {
+      "pass": true,
+      "issues": [],
+      "reset_aliases": [
+        {
+          "index": 202,
+          "ticks": 212727004413,
+          "kind": "PMGR_ALIAS",
+          "result": 0,
+          "a": 22,
+          "b": 0,
+          "c": 0,
+          "d": 0
+        },
+        {
+          "index": 203,
+          "ticks": 212741855765,
+          "kind": "PMGR_ALIAS",
+          "result": -1,
+          "a": 23,
+          "b": 0,
+          "c": 0,
+          "d": 0
+        }
+      ]
+    },
+    "m1n1_restart_reads": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "retained_ranges": [
+      {
+        "address": "0x10008c9c000",
+        "bytes": 32768
+      },
+      {
+        "address": "0x10008ca8000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008cb0000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c88000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c84000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c8c000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c94000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c90000",
+        "bytes": 16384
+      },
+      {
+        "address": "0x10008c98000",
+        "bytes": 16384
+      }
+    ],
+    "retained_ranges_reserved": true,
+    "payload_readback_unchanged": true,
+    "ans_cpu_control": 16,
+    "ans_boot_status": 3732000341,
+    "kboot_return": 0,
+    "finished_at": "2026-10-12T17:09:36.995444-06:00"
+  },
+  "artifacts": {
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/local-src/build/m1n1.bin",
+      "sha256": "e8f25a162bdabe49cc8819c01a922dea2741a454c44aeec6950c48b37c08ff05",
+      "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/local-src/build/m1n1-raw.elf",
+      "elf_sha256": "d323a641108ef39a07ed90fd849ec00e2346e68db7b800de1f5a9883682ba307",
+      "bytes": 3932160
+    },
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-X1-20261012/Image.gz",
+      "sha256": "c778d33aab8316b362c515e426ed0e72f58fb516602309b704ada835bf803fb2",
+      "bytes": 2946105
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+      "bytes": 35374
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/init-build/initramfs.cpio.gz",
+      "sha256": "c399adc83593615f1ba05ac29b8dc1d19ad6b87bf24044b96df3083e48c27742",
+      "bytes": 1028596
+    }
+  },
+  "panel": {
+    "boot_id_prefix": "e8606c1f",
+    "branch": 3,
+    "boot_iop_ack_state": "0x20",
+    "ans_crash": true,
+    "ap_sleep_ack": true,
+    "iop_sleep_tx_result": 0,
+    "iop_sleep_ack": false,
+    "shutdown_prepare": -62,
+    "rx_after_sleep_send": [
+      {
+        "endpoint": 1,
+        "delta_ms": 0
+      }
+    ],
+    "trace_total": 170,
+    "trace_dropped": 0,
+    "log_gaps": 0,
+    "log_dropped": 0,
+    "log_error": null,
+    "unbind": "OK",
+    "bind": "not attempted",
+    "rtkit_reinit": "not called",
+    "final_namespace": false,
+    "phase": "CHECK UNBOUND",
+    "error": "CRASH DURING UNBIND"
+  },
+  "crashlog_panel_reads": {
+    "clhe_declared": "0x4c10",
+    "allocated": "0x8000",
+    "cver_base_candidate": "0x26c000",
+    "pc": "0x2824e8",
+    "pc_offset": "0x164e8",
+    "psr": "0x600002c5",
+    "esr_low32": "0xbe000000",
+    "far": "0x49f020000",
+    "sp": "0x4c4f80",
+    "ccst_task": 14,
+    "ccst_frame_0_pc": "0x2824e8",
+    "l2c_status": "0x80",
+    "l2c_address_low40": "0x49f020000",
+    "lsu_status_low40": "0x49f020000",
+    "cmbx_tail": [
+      {
+        "slot": 125,
+        "message": "00b0000000000010"
+      },
+      {
+        "slot": 126,
+        "message": "00b0000000000010"
+      },
+      {
+        "slot": 127,
+        "message": "0060000000000001"
+      }
+    ]
+  },
+  "frames": {
+    "status": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f011.jpg",
+      "sha256": "60da624ad60c8d73e9ebe4247f53672274efd92bf76f66fcb82f8cd1639a80cb",
+      "verification": "panel read; page-content CRC not verified"
+    },
+    "5": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f043.jpg",
+      "sha256": "e93f54b14cebf1a90d52098bc13caa958e4859a1c8dc1f3ff1892bace89355fb",
+      "verification": "panel read; page-content CRC not verified"
+    },
+    "6": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f049.jpg",
+      "sha256": "3528a3131063c549bd2c4e01770c49c70a810942b131f9f665c40560d733d941",
+      "verification": "panel read; page-content CRC not verified"
+    },
+    "7": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f055.jpg",
+      "sha256": "09aa6120c04a55e6909f4fd3396a8487a5edc9bd47f2e6ac31137e83013bbd10",
+      "verification": "panel read; page-content CRC not verified"
+    },
+    "8": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f061.jpg",
+      "sha256": "56f6f1267c7690a2c3e05148c66deaa619d7fce3f461610030924db2b814aa68",
+      "verification": "panel read; page-content CRC not verified"
+    },
+    "17": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames/f115.jpg",
+      "sha256": "3ac0e1dbbeeb267830e98eebf2798a3740c09b9a40ec1b3c55ad6503a2cf7c1d",
+      "verification": "panel read; page-content CRC not verified"
+    }
+  },
+  "limits": [
+    "Linux sends INIT and renegotiates endpoints; unchanged protocol-session adoption not tested.",
+    "State altered during kernel boot, wake and genpd setup remains open.",
+    "Final FDT intentionally re-prepared with live allocation reservations.",
+    "FAR address-space identity and exact offending instruction unestablished.",
+    "Page-content CRC verification not performed."
+  ],
+  "capture": {
+    "pages": [
+      {
+        "page": 1,
+        "frame": "frames/f019.jpg",
+        "sha256": "c2675d8ee884aef0c46cf4f1cbca49aa51b2c6b459cc15b68428621f9c016f7c",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 2,
+        "frame": "frames/f025.jpg",
+        "sha256": "aebd2de1fda99bf13de2f7a51e2efdc05c62d24b39f9523730746a11bf3d4dc1",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 3,
+        "frame": "frames/f031.jpg",
+        "sha256": "2d81224b84c2048f2ef19cfc7efb51f687b2f9cf2fd47068236ab2149cc9f909",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 4,
+        "frame": "frames/f037.jpg",
+        "sha256": "02bcdd28d2117d76d2b5c49c6609e233452b60abca397df085804d58d7f1021e",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 5,
+        "frame": "frames/f043.jpg",
+        "sha256": "e93f54b14cebf1a90d52098bc13caa958e4859a1c8dc1f3ff1892bace89355fb",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 6,
+        "frame": "frames/f049.jpg",
+        "sha256": "3528a3131063c549bd2c4e01770c49c70a810942b131f9f665c40560d733d941",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 7,
+        "frame": "frames/f055.jpg",
+        "sha256": "09aa6120c04a55e6909f4fd3396a8487a5edc9bd47f2e6ac31137e83013bbd10",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 8,
+        "frame": "frames/f061.jpg",
+        "sha256": "56f6f1267c7690a2c3e05148c66deaa619d7fce3f461610030924db2b814aa68",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 9,
+        "frame": "frames/f067.jpg",
+        "sha256": "7ab9c4642d88eba34ea5b47e80633e44a92ad0a31a222c2282c4245f5fadade5",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 10,
+        "frame": "frames/f073.jpg",
+        "sha256": "7805acf68be59b7a7a0620dfedff73caf9d79ed97c7f52d44812d27baf9d2254",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 11,
+        "frame": "frames/f079.jpg",
+        "sha256": "2ab40dd1b667d0c4f4b7d0162320f461cfeb571c4ddeb0a5eefed002a0574d89",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 12,
+        "frame": "frames/f085.jpg",
+        "sha256": "fde76ef20b2e081e43f62f87530a9368d6977c849ba532fc9bdb4bfc17f9de14",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 13,
+        "frame": "frames/f091.jpg",
+        "sha256": "eeabe9fe7b56a1a70a044fc863fcf891ab35cda99932cdcee91532e0855a1fea",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 14,
+        "frame": "frames/f097.jpg",
+        "sha256": "0c2bbd5e7f942ba9ef03fdec51888597563b7d7066531ec02e5bce6fcdd39412",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 15,
+        "frame": "frames/f103.jpg",
+        "sha256": "e8ae30a1e29bcf4d835020a5b983376fa378ce13fbf82b0ab231c1944a18179e",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 16,
+        "frame": "frames/f109.jpg",
+        "sha256": "0f5021c47ab4c432871e2bb2702d55b474f59da245cef88aa1d5b85808206940",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 17,
+        "frame": "frames/f115.jpg",
+        "sha256": "3ac0e1dbbeeb267830e98eebf2798a3740c09b9a40ec1b3c55ad6503a2cf7c1d",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 18,
+        "frame": "frames/f121.jpg",
+        "sha256": "ddebd413d3084d8ea57700d493fd0627ce18f40dae0e64e76a42b3e89d7956cc",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 19,
+        "frame": "frames/f127.jpg",
+        "sha256": "c2c71626c39a4bb01613e9ecabfa1d11ae68908d77183f50ce63cf9d85a6afa1",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 20,
+        "frame": "frames/f133.jpg",
+        "sha256": "3c4010310ff1e5f6c2d7805bdfdf3f4951817441ce7ac39d10a3f2c7b6d0281f",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 21,
+        "frame": "frames/f139.jpg",
+        "sha256": "a212556b8eab79dc124d2a81c37f74fc0bf58db7ba6a63cd240dc1699bee3a21",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 22,
+        "frame": "frames/f151.jpg",
+        "sha256": "37b56682e7f4bc2c07745151244979a08a011e08926a91d73319088204bcaf96",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 23,
+        "frame": "frames/f157.jpg",
+        "sha256": "bbc89e09ac742f7d0ef80058191ab35314e8700ff6aa44a209fc09f5f167dff3",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 24,
+        "frame": "frames/f163.jpg",
+        "sha256": "0cd9dcaf769a8b144285e1d0c8a3c5f2450132051e5aee45be978f00ed8846c8",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 25,
+        "frame": "frames/f169.jpg",
+        "sha256": "3ee783d572968db5aaf3b9556694d0f3228fec30e58690ff56d2dbcead8dff2b",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 26,
+        "frame": "frames/f175.jpg",
+        "sha256": "3eefe430a7b27259f0a9c42689a02fbc6b472b17eb0862e66ceed6e6a0a5b9c6",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 27,
+        "frame": "frames/f181.jpg",
+        "sha256": "d662c99559fdbc14df57e5366ab3b6cfae3144ce8ce40a9d9ae9da37857447a6",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 28,
+        "frame": "frames/f187.jpg",
+        "sha256": "8291d4fa6b3cadceb15fa325359285dd5877b493a7dc3da873f6bcfca960a2b5",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 29,
+        "frame": "frames/f193.jpg",
+        "sha256": "2d4193f671bcc71c0dfff763db0b62c235ef619dd8dffe9951ced8661f953424",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 30,
+        "frame": "frames/f199.jpg",
+        "sha256": "3a4fd4ebc2902865a5ee61f504116d9a6195ac3289391e1a2bd5d93144779924",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 31,
+        "frame": "frames/f205.jpg",
+        "sha256": "259258ed99ea4e50f1316d0831ca9dc502831cb122611f5eebc4d8210cb7a581",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 32,
+        "frame": "frames/f211.jpg",
+        "sha256": "e99c0215dc47f60336391ad13402c8bf9da0054060b328fed2dc723a239214f8",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 33,
+        "frame": "frames/f217.jpg",
+        "sha256": "0c45482202108dd44d4d933ed4a67ac2751faa5e0413a2d1b620b97d458afc91",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 34,
+        "frame": "frames/f223.jpg",
+        "sha256": "b350ee45f41c678d5cd364571f8fae7d1b73163faec4db7cd87f8704bad16085",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 35,
+        "frame": "frames/f229.jpg",
+        "sha256": "cc2f46877c757140607e7b29f0804f115a98d2c74fb1ef8a92b80ccc73f33cdd",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 36,
+        "frame": "frames/f235.jpg",
+        "sha256": "b25ac4e1b7dff78d688006108d3e4f881255769bdbd9892cae9acb819aacbfc7",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 37,
+        "frame": "frames/f241.jpg",
+        "sha256": "074d65f03757aec67b718d1cc35d2706db81552c7a195baee4178f6aa58c3b86",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 38,
+        "frame": "frames/f247.jpg",
+        "sha256": "be814d1e3f6478474ef3e99a471ce7e57e00de73bbb6cc31fd9033ab49adfcf2",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 39,
+        "frame": "frames/f253.jpg",
+        "sha256": "2f32dbf10a2163ba7426ecbda6fe5fdd5c7dbdb45c9ea43a3d171311c2178a3d",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 40,
+        "frame": "frames/f259.jpg",
+        "sha256": "2154a115a30cf1dd976dc1982e8723e1d23dd4ee0e45935e1640cf1f6570112b",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 41,
+        "frame": "frames/f265.jpg",
+        "sha256": "2e48991113abd257253745d6ed60e7f48803c9fa993e026e38de3fc408797c28",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 42,
+        "frame": "frames/f271.jpg",
+        "sha256": "fd9a5cf29245d4eaf64d0506cea3c81193b66f9eba282b7cb6b7fbe24496693f",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 43,
+        "frame": "frames/f277.jpg",
+        "sha256": "47d6fb0e914d842c7fbf367f10a74682174bb26a4ad38c70fcbf628bf31f2715",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 44,
+        "frame": "frames/f281.jpg",
+        "sha256": "7e7d59b3694586933671f30625adb63cbff73fe0c47953d0b3171e830019ea35",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 45,
+        "frame": "frames/f283.jpg",
+        "sha256": "86334311e8a1717c58b763c34e22f96077585614617eda58e899873c2b454f20",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 46,
+        "frame": "frames/f289.jpg",
+        "sha256": "7ab2251a8a1360281a299283459feff4104a73306191707d85ed4ea974eaa426",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 47,
+        "frame": "frames/f295.jpg",
+        "sha256": "ee42218a03bff25c070e909c18d17acdbdf536f2a3a71b42a5b4ba03d65b2ace",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 48,
+        "frame": "frames/f301.jpg",
+        "sha256": "9844c30b1392e510c5d70dd4d3fe6d19439c4cbdced0ec7528e92cc3e9231e79",
+        "verification": "page number visually checked; page-content CRC not verified"
+      },
+      {
+        "page": 49,
+        "frame": "frames/f307.jpg",
+        "sha256": "3dbac7e5f7f96c0a2692b27845d70c00174664cd4164060b905a41408b63e8ae",
+        "verification": "page number visually checked; page-content CRC not verified"
+      }
+    ],
+    "all_49_page_numbers_visually_checked": true,
+    "page_content_crc_verification": false,
+    "frames_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-E5-20261012/frames"
+  }
+}

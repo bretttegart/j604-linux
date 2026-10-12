@@ -576,7 +576,7 @@ func main() {
 			cell = strings.ReplaceAll(value, "-", " ")
 		}
 	}
-	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R" || cell == "C9 E1" || cell == "C9 E3", SkipReads: cell == "C9 E1", ProbeTest: cell == "C9 E3"}
+	current = report{Cell: cell, BootID: readTrim("/proc/sys/kernel/random/boot_id"), Status: "WAIT", Phase: "WAIT NAMESPACE", Runtime: cell == "C9 R" || cell == "C9 E1" || cell == "C9 E3" || cell == "C9 E5", SkipReads: cell == "C9 E1" || cell == "C9 E5", ProbeTest: cell == "C9 E3"}
 	go captureLog()
 	if current.ProbeTest {
 		go testProbe()

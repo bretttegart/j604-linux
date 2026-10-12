@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Matched Linux preload: L0/P0 warm; L1/P1 add one read/shutdown cycle."""
+"""Matched Linux preload; E5 retains a running m1n1 ANS after restart."""
 import argparse
 from datetime import datetime
 import gzip
@@ -38,12 +38,13 @@ def symbols(elf):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--cell", choices=["L0", "L1", "P0", "P1", "R", "E1", "E3"], required=True)
+    ap.add_argument("--cell", choices=["L0", "L1", "P0", "P1", "R", "E1", "E3", "E5"], required=True)
     ap.add_argument("--manifest", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--proxyclient", type=Path, default=Path("/home/btega/bootloader/proxyclient"))
     args = ap.parse_args()
     cold = args.cell in ("L1", "P1")
+    live = args.cell == "E5"
     manifest = json.loads(args.manifest.read_text())
     blobs = {name: Path(manifest[name]["path"]).read_bytes() for name in ("kernel", "dtb", "initramfs")}
     for name, raw in blobs.items():
@@ -98,7 +99,8 @@ def main():
     def save_trace(label):
         raw=call("trace-"+label, lambda: iface.readmem(trace_pointer,restart.STORE_BYTES))
         trace=restart.decode(raw)
-        if trace["variant"]!="C9-LOCAL" or trace["event_dropped"] or trace["snapshot_dropped"]:
+        expected_variant = "C9-LOCAL-E5" if live else "C9-LOCAL"
+        if trace["variant"]!=expected_variant or trace["event_dropped"] or trace["snapshot_dropped"]:
             raise ValueError("Wrong/overflowed capture")
         (args.output/f"trace-{label}.bin").write_bytes(raw)
         (args.output/f"trace-{label}.json").write_text(json.dumps(trace,indent=2)+"\n")
@@ -171,7 +173,7 @@ def main():
         before=fingerprint("before-cycle")
         if before["kernel"]!=sha(image) or before["initramfs"]!=manifest["initramfs"]["sha256"]:
             raise ValueError("Payload readback differs from host inputs")
-        if cold:
+        if cold or live:
             ok=call("nvme-first-init",p.nvme_init,45)
             trace=save_trace("nvme-init")
             if ok!=1 or any(e["kind"]=="CRASH" for e in trace["events"]):
@@ -195,11 +197,80 @@ def main():
             trace=save_trace("nvme-shutdown")
             findings=restart.shutdown_findings(trace);result["shutdown"]=findings
             if not findings["pass"]:raise ValueError("Pre-handoff shutdown not proven")
+            if live:
+                if call("nvme-second-init",p.nvme_init,45)!=1:
+                    raise ValueError("E5 restart init failed")
+                trace=save_trace("nvme-second-init")
+                if any(e["kind"]=="CRASH" for e in trace["events"]):
+                    raise ValueError("E5 m1n1 restart crashed")
+                retained=restart.buffer_ranges(trace)
+                begin=max(i for i,e in enumerate(trace["events"]) if e["kind"]=="INIT_BEGIN")
+                queue_events=[e for e in trace["events"][begin:] if e["kind"]=="QUEUE"]
+                if len(queue_events)!=6:raise ValueError("E5 queue capture incomplete")
+                retained += [(e["a"], (e["b"]+16383)&~16383) for e in queue_events]
+                for a,n in retained:
+                    check_ram(a,n)
+                    if any(overlaps(a,n,r["address"],r["bytes"]) for r in result["regions"].values()):
+                        raise ValueError("Retained ANS buffer overlaps payload")
+                result["m1n1_restart_reads"]={}
+                for lba in (0,1,2,128,4096):
+                    call(f"restart-sentinel-{lba}",lambda:iface.writemem(buffer,bytes([0x5a^(lba&255)])*4096))
+                    if call(f"restart-read-{lba}",lambda:p.nvme_read(1,lba,buffer))!=1:
+                        raise ValueError("E5 restart read failed")
+                    block=call(f"restart-readback-{lba}",lambda:iface.readmem(buffer,4096))
+                    digest=sha(block)
+                    if digest!=manifest["expected_read_hashes"][str(lba)]:
+                        raise ValueError("E5 restart block hash mismatch")
+                    result["m1n1_restart_reads"][str(lba)]=digest
+                if call("nvme-live-quiesce",lambda:p.request(0xf05),45)!=1:
+                    raise ValueError("E5 live quiesce rejected")
+                trace=save_trace("live-quiesced")
+                tail=trace["events"][begin:]
+                if any(e["kind"] in ("CRASH","CPU_STOP","UNMAP","PMGR_BEFORE") for e in tail):
+                    raise ValueError("E5 session was stopped, released, reset or crashed")
+                for msgtype in (7,11):
+                    if not any(e["kind"]=="RX" and e.get("endpoint")==0 and e.get("management_type")==msgtype and e.get("power_state")==0x10 for e in tail):
+                        raise ValueError("Missing E5 QUIESCED ACK")
+                if not any(e["kind"]=="LIVE_ARM" and e["result"]==1 for e in tail):
+                    raise ValueError("E5 retention not armed")
+                # Reprepare the FDT only after the current allocations exist.
+                # Kernel/initrd must remain byte-identical; FDT gains reservations.
+                intact=fingerprint("before-live-dt")
+                if intact!=before:raise ValueError("E5 storage cycle altered payload")
+                if call("prepare-live-dt",lambda:p.kboot_prepare_dt(dtb))!=0:
+                    raise ValueError("E5 live DT preparation failed")
+                dt_address=call("live-dt-pointer",lambda:p.read64(u.base+syms["dt"]))
+                check_ram(dt_address,40)
+                header=call("live-dt-header",lambda:iface.readmem(dt_address,40))
+                if header[:4]!=b"\xd0\x0d\xfe\xed":raise ValueError("Invalid E5 FDT")
+                dt_size=struct.unpack_from(">I",header,4)[0]
+                if not (40<=dt_size<=1024*1024):raise ValueError("Invalid E5 FDT size")
+                check_ram(dt_address,dt_size)
+                prepared=call("live-dt-readback",lambda:iface.readmem(dt_address,dt_size))
+                reserve_offset=struct.unpack_from(">I",prepared,16)[0]
+                reservations=[]
+                while reserve_offset+16<=len(prepared):
+                    address,size=struct.unpack_from(">QQ",prepared,reserve_offset)
+                    reserve_offset+=16
+                    if address==size==0:break
+                    reservations.append((address,size))
+                else:raise ValueError("Unterminated E5 FDT reservations")
+                if any(not any(b<=a and a+n<=b+m for b,m in reservations) for a,n in retained):
+                    raise ValueError("E5 retained memory lacks FDT reservation")
+                if any(overlaps(a,n,dt_address,dt_size) for a,n in retained):
+                    raise ValueError("E5 retained buffer overlaps new FDT")
+                (args.output/"prepared-before-live.dtb").write_bytes((args.output/"prepared.dtb").read_bytes())
+                (args.output/"prepared.dtb").write_bytes(prepared)
+                result["regions"]["prepared-dtb"]={"address":dt_address,"bytes":dt_size}
+                result["retained_ranges"]=[{"address":hex(a),"bytes":n} for a,n in retained]
+                result["retained_ranges_reserved"]=True
+                trace=save_trace("live-reserved")
         else:
             trace=save_trace("no-storage-cycle")
             if any(e["kind"]=="INIT_BEGIN" for e in trace["events"]):raise ValueError("Warm control unexpectedly used NVMe")
         after=fingerprint("after-cycle")
-        if before!=after:raise ValueError("Storage cycle changed a preloaded component")
+        compared=("kernel","initramfs") if live else before.keys()
+        if any(before[name]!=after[name] for name in compared):raise ValueError("Storage cycle changed a preloaded component")
         result["payload_readback_unchanged"]=True
         # Verify and document the final ANS decision state, outside reset.
         result["ans_cpu_control"]=call("ans-cpu-control",lambda:p.read32(0x481600044))
