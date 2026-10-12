@@ -1,0 +1,147 @@
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -1146,29 +1146,8 @@
+ 		apple_nvme_ansrst(anv, "post-cpu-run", 0, ansrst_t0);
+ 
+ 		ret = apple_rtkit_boot(anv->rtk);
+-	} else if (anv->hw->needs_ioq_register &&
+-		   readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) ==
+-		   APPLE_ANS_BOOT_STATUS_OK) {
+-		/*
+-		 * iBoot already booted ANS. The endpoint-map messages were
+-		 * sent before this mailbox was listening, so apple_rtkit_boot
+-		 * waits out -ETIME. The boot path's last step, AP power ON,
+-		 * was never sent.
+-		 *
+-		 * raw34: match Gravity's proven t8132 flow instead: use
+-		 * apple_rtkit_wake(), which sends the IOP INIT message and
+-		 * then runs the full boot handshake (endpoint map + IOP
+-		 * power ACK + AP power ON). The endpoint map appears to be
+-		 * emitted in response to INIT, not as a one-time broadcast
+-		 * we missed.
+-		 */
++	} else {
+ 		dev_err(anv->dev, "ANSBR 3\n");
+-		ret = apple_rtkit_wake(anv->rtk);
+-	} else if (anv->hw->needs_ioq_register) {
+-		dev_err(anv->dev, "ANSBR 4\n");
+-		ret = apple_rtkit_boot(anv->rtk);
+-	} else {
+-		dev_err(anv->dev, "ANSBR 5\n");
+ 		ret = apple_rtkit_wake(anv->rtk);
+ 	}
+ 
+@@ -1227,18 +1206,6 @@
+ 		/* Setup the NVMMU for the maximum admin and IO queue depth */
+ 		writel(anv->hw->max_queue_depth - 1,
+ 			anv->mmio_nvmmu + APPLE_NVMMU_NUM_TCBS);
+-	}
+-
+-	/*
+-	 * m1n1 clears CC.EN and waits for CSTS.RDY before writing ASQ.
+-	 * raw20 reached enable with CSTS=0 and -ENODEV: RDY never came
+-	 * back after the queues were programmed while EN was still set.
+-	 */
+-	if (anv->hw->needs_ioq_register) {
+-		anv->ctrl.cap = readq(anv->mmio_nvme + NVME_REG_CAP);
+-		ret = nvme_disable_ctrl(&anv->ctrl, false);
+-		if (ret)
+-			goto out;
+ 	}
+ 
+ 	/* Setup the admin queue */
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -123,8 +123,6 @@
+ 	APPLE_RTKIT_EP_SYSLOG = 2,
+ 	APPLE_RTKIT_EP_DEBUG = 3,
+ 	APPLE_RTKIT_EP_IOREPORT = 4,
+-	/* Advertised by newer firmware and required to complete RTKit boot. */
+-	APPLE_RTKIT_EP_UNKNOWN7 = 7,
+ 	APPLE_RTKIT_EP_OSLOG = 8,
+ 	APPLE_RTKIT_EP_TRACEKIT = 0xa,
+ };
+@@ -165,8 +163,6 @@
+ 
+ #define APPLE_RTKIT_SYSLOG_TYPE GENMASK_ULL(59, 52)
+ 
+-#define APPLE_RTKIT_SYSTEM7_BUFFER_REPLY 5
+-
+ #define APPLE_RTKIT_SYSLOG_LOG 5
+ 
+ #define APPLE_RTKIT_SYSLOG_INIT	     8
+@@ -305,7 +301,6 @@
+ 		case APPLE_RTKIT_EP_CRASHLOG:
+ 		case APPLE_RTKIT_EP_DEBUG:
+ 		case APPLE_RTKIT_EP_IOREPORT:
+-		case APPLE_RTKIT_EP_UNKNOWN7:
+ 		case APPLE_RTKIT_EP_OSLOG:
+ 		case APPLE_RTKIT_EP_TRACEKIT:
+ 			dev_dbg(rtk->dev,
+@@ -432,8 +427,6 @@
+ 					    buffer->iova >> 12);
+ 		} else {
+ 			reply = FIELD_PREP(APPLE_RTKIT_SYSLOG_TYPE,
+-					   ep == APPLE_RTKIT_EP_UNKNOWN7 ?
+-					   APPLE_RTKIT_SYSTEM7_BUFFER_REPLY :
+ 					   APPLE_RTKIT_BUFFER_REQUEST);
+ 			reply |= FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_SIZE,
+ 					    buffer->size >> 12);
+@@ -556,21 +549,6 @@
+ 	}
+ }
+ 
+-static void apple_rtkit_system7_rx(struct apple_rtkit *rtk, u64 msg)
+-{
+-	u8 type = FIELD_GET(APPLE_RTKIT_SYSLOG_TYPE, msg);
+-
+-	switch (type) {
+-	case APPLE_RTKIT_BUFFER_REQUEST:
+-		apple_rtkit_common_rx_get_buffer(rtk, &rtk->system7_buffer,
+-						 APPLE_RTKIT_EP_UNKNOWN7, msg);
+-		break;
+-	default:
+-		dev_warn(rtk->dev, "RTKit: Unknown system endpoint 7 message: %llx\n",
+-			 msg);
+-	}
+-}
+-
+ static void apple_rtkit_syslog_rx_init(struct apple_rtkit *rtk, u64 msg)
+ {
+ 	rtk->syslog_n_entries = FIELD_GET(APPLE_RTKIT_SYSLOG_N_ENTRIES, msg);
+@@ -694,9 +672,6 @@
+ 		break;
+ 	case APPLE_RTKIT_EP_IOREPORT:
+ 		apple_rtkit_ioreport_rx(rtk, rtk_work->msg);
+-		break;
+-	case APPLE_RTKIT_EP_UNKNOWN7:
+-		apple_rtkit_system7_rx(rtk, rtk_work->msg);
+ 		break;
+ 	case APPLE_RTKIT_EP_OSLOG:
+ 		apple_rtkit_oslog_rx(rtk, rtk_work->msg);
+@@ -921,7 +896,6 @@
+ 	flush_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
+-	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+@@ -1148,7 +1122,6 @@
+ 	destroy_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
+-	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+--- a/drivers/soc/apple/rtkit-internal.h
++++ b/drivers/soc/apple/rtkit-internal.h
+@@ -45,7 +45,6 @@
+ 	DECLARE_BITMAP(endpoints, APPLE_RTKIT_MAX_ENDPOINTS);
+ 
+ 	struct apple_rtkit_shmem ioreport_buffer;
+-	struct apple_rtkit_shmem system7_buffer;
+ 	struct apple_rtkit_shmem crashlog_buffer;
+ 	struct apple_rtkit_shmem oslog_buffer;
+ 

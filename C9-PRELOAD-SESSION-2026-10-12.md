@@ -177,3 +177,5 @@ discriminator now that L1 fails. The subsequent
 at new, non-overlapping intervals; the measured m1n1 restart does not need
 exact address reuse. The next selected comparison is a grouped Linux
 RTKit/EP7 parity screen, with a warm control before its cold test.
+That subsequent [P0/P1 test](C9-PARITY-SESSION-2026-10-12.md) completed:
+warm PASS, cold FAIL with ANS crash/reset `-62` and no namespace.

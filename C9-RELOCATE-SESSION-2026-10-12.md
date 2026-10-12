@@ -105,4 +105,6 @@ removing the extra EP7 handling/start, early controller-disable call and
 extra branch together. First prove a warm control with that kernel, then
 repeat the cold preload/read/shutdown handoff using the same fixed-screen
 verifier. This is a screen; a pass would require restoring deltas separately
-to attribute the change. The parity kernel is not yet built or booted.
+to attribute the change. The subsequent
+[parity run](C9-PARITY-SESSION-2026-10-12.md) completed with P0 warm PASS
+and P1 cold FAIL; the next selected test is Linux runtime unbind/rebind.

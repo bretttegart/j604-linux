@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-12",
+  "experiment": "Grouped Linux parity: EP7 removed; early controller disable removed; two-case reset/wake restored",
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012",
+  "manifest": {
+    "created_at": "2026-10-12",
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+      "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+      "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+      "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+    },
+    "expected_read_hashes": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "init_source_sha256": "c97d1757ecca07bc1a7fda8be4c94ff27a031fa641cb93c96438ed469881a4d7",
+    "reporting": "Fixed status panel captured with bounded C920 webcam stills.",
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/Image.gz",
+      "sha256": "aeb4b1562c410084bd88280f6b0f036243f93d0396fa4672de9cdfd09b571fa7",
+      "bytes": 2944858
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+      "bytes": 35374
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-L-PREP-20261012/initramfs.cpio.gz",
+      "sha256": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+      "bytes": 858052
+    },
+    "experiment": "C9 grouped Linux parity P0 warm / P1 cold",
+    "kernel_parity_patch_sha256": "1b3d4aaf780298d2dee165901b95eaf73661a6788428276e333ce4f29ec64e25"
+  },
+  "source_changes": {
+    "drivers/nvme/host/apple.c": {
+      "before": "0b7a8f38deabd7feeaea1855f38f258fa2295e3385895fafe27e52bef7a9d1c3",
+      "after": "7cf373bc9034e6ef7a3ace413b67f1b183b34fca0f4b0500513de1c93c272a94"
+    },
+    "drivers/soc/apple/rtkit.c": {
+      "before": "ac227c89305c138550c7c99f5f0705ba7f87feec14555111c2c98629b4f39e47",
+      "after": "68fdf93998ce4128d8f2cec710d6e1124460954ca9ce73e879f05471c4f732df"
+    },
+    "drivers/soc/apple/rtkit-internal.h": {
+      "before": "1f2af9a1e975c5a5c340b53e7a6791a3139b1dd30388e7c74ac6a5be22df179f",
+      "after": "9519e58dfd06d4f5303fde4acf5c6bceb46852d380605cd429859a8a6770365f"
+    }
+  },
+  "validation": {
+    "source_base": "77cb8f24c2381a8abb7272d7bbdec548d6426a8a",
+    "changed_tracked_sources_from_C8": [
+      "drivers/nvme/host/apple.c",
+      "drivers/soc/apple/rtkit-internal.h",
+      "drivers/soc/apple/rtkit.c"
+    ],
+    "config_sha256": "58555ef341ff0ed8f2bec3078fce1882d8e97c9086e53f14369664161447bcfb",
+    "config_matches_C8": true,
+    "Image_sha256": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+    "Image_bytes": 10686976,
+    "baseline_source_preserved": true,
+    "ep7_references_removed": true,
+    "baseline_patch_apply_check": "PASS",
+    "build_command": "make -j4 ARCH=arm64 LLVM=1 Image.gz",
+    "boot_components_other_than_kernel_match_L0_L1": true
+  },
+  "cells": {
+    "P0": {
+      "host": {
+        "cell": "P0",
+        "started_at": "2026-10-12T13:12:18.796325-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099782160384,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1100319031296,
+            "bytes": 858052
+          },
+          "prepared-dtb": {
+            "address": 1099644370944,
+            "bytes": 37060
+          }
+        },
+        "m1n1_base": "0x10004de4000",
+        "host_heap": {
+          "base": "0x1000fe98000",
+          "end": "0x1004fe98000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-P0",
+        "read_buffer": "0x10007ebc000",
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 16,
+        "ans_boot_status": 3732000341,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T13:12:20.969336-06:00"
+      },
+      "linux": {
+        "cell": "P0",
+        "linux_result": "PASS",
+        "report_source": "Manual transcription checked against final Logitech C920 frame",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/P0-RUN/status-final.jpg",
+        "frame_sha256": "af45165f93b3eedca49a40f6d763ac5e5f103a4f88965e1adb1a062af0cb3d88",
+        "camera_model": "Logitech HD Pro Webcam C920",
+        "camera_startup_frames_discarded": 60,
+        "boot_id_prefix": "2c7790d0",
+        "matched_direct_reads": 5,
+        "read_total": 5,
+        "namespace_present": true,
+        "ans_branch": 3,
+        "ans_crash": false,
+        "reset_error": null,
+        "phase": "READS MATCH",
+        "error": null,
+        "payload_readback_unchanged": true,
+        "m1n1_storage_cycle": false,
+        "ans_before_handoff": {
+          "cpu_control": "0x10",
+          "boot_status": "0xde71ce55"
+        },
+        "linux_log_exported": false,
+        "disk_write_commands": 0
+      },
+      "payload_hashes": {
+        "kernel": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+        "initramfs": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+        "prepared-dtb": "42566ca7418d0d582741a41189df1a3d1c801b4ebe83362cc78cb4b67638abb5"
+      },
+      "evidence_sha256": {
+        "host-result.json": "b72d70c02723b025d20a3766cbc497706b755b86f774d7b319ad76b0145c4795",
+        "linux-result.json": "cbed4661da6efcc67fa10a34e558a2ef43b9e7bea5ce7c98db2eaecee9e2c80b",
+        "manifest.json": "8b05c604ef5452d4c366ece8319d8a63a9639017dd0de5adee81de8277279b83",
+        "payload-hashes-after-cycle.json": "8d9d1609906f5bb330e5546c05074878bbf8002c90064b3ad319a25b486097d6",
+        "payload-hashes-before-cycle.json": "8d9d1609906f5bb330e5546c05074878bbf8002c90064b3ad319a25b486097d6",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "777b8e9e9ed0e826ac722283a8b3d1cc30240468fd5828ac7e15650d10192458",
+        "prepared.dtb": "42566ca7418d0d582741a41189df1a3d1c801b4ebe83362cc78cb4b67638abb5",
+        "status-final.jpg": "af45165f93b3eedca49a40f6d763ac5e5f103a4f88965e1adb1a062af0cb3d88",
+        "status-initial.jpg": "2065f8286470c061b01aa10d22ef3d639a279350729689bb5d0621269726a8a2",
+        "trace-no-storage-cycle.bin": "e1c29ad6894c7eb9f4518312a8509ac7d52d7f1176bcf3544821f428b46824f3",
+        "trace-no-storage-cycle.json": "d9d97228cf4b8548968b5a9ac7f470a51858c98a262d99860b5bf20dcb12303c",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      }
+    },
+    "P1": {
+      "host": {
+        "cell": "P1",
+        "started_at": "2026-10-12T13:14:20.103912-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099798937600,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1099797168128,
+            "bytes": 858052
+          },
+          "prepared-dtb": {
+            "address": 1099659870208,
+            "bytes": 37060
+          }
+        },
+        "m1n1_base": "0x10005ca4000",
+        "host_heap": {
+          "base": "0x10010d60000",
+          "end": "0x10050d60000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-P1",
+        "read_buffer": "0x10008d84000",
+        "m1n1_reads": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "shutdown": {
+          "pass": true,
+          "issues": [],
+          "reset_aliases": [
+            {
+              "index": 217,
+              "ticks": 48018240286,
+              "kind": "PMGR_ALIAS",
+              "result": 0,
+              "a": 22,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            },
+            {
+              "index": 218,
+              "ticks": 48033132531,
+              "kind": "PMGR_ALIAS",
+              "result": -1,
+              "a": 23,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            }
+          ]
+        },
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 0,
+        "ans_boot_status": 0,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T13:14:23.711735-06:00"
+      },
+      "linux": {
+        "cell": "P1",
+        "linux_result": "FAIL",
+        "report_source": "Manual transcription checked against final Logitech C920 frame",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PARITY-20261012/P1-RUN/status-final.jpg",
+        "frame_sha256": "5e2a5e23303f593b78e16524f0d1a6dc0859e6580306cc182a86ba6b1c6933e8",
+        "camera_model": "Logitech HD Pro Webcam C920",
+        "camera_startup_frames_discarded": 60,
+        "boot_id_prefix": "575df85c",
+        "matched_direct_reads": 0,
+        "read_total": 5,
+        "namespace_present": false,
+        "ans_branch": 2,
+        "ans_crash": true,
+        "reset_error": -62,
+        "phase": "NO NAMESPACE",
+        "error": "NO NVME",
+        "payload_readback_unchanged": true,
+        "m1n1_storage_cycle": true,
+        "m1n1_reference_reads_matched": 5,
+        "ans_before_handoff": {
+          "cpu_control": "0x0",
+          "boot_status": "0x0"
+        },
+        "linux_log_exported": false,
+        "disk_write_commands": 0
+      },
+      "payload_hashes": {
+        "kernel": "c4676e6305ccbdba485c02eb38040084d03b5711b0857be2ee3c1caf537927ec",
+        "initramfs": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+        "prepared-dtb": "e0da08ad802b4d2aa1320c46632b3e779a7de2658e9c56a4dbe8e4bcdb3ec231"
+      },
+      "evidence_sha256": {
+        "evidence-analysis.json": "b7f9a37a481cc050439f14c793217e6aab3e9f4ec78b6e86c3aade006f25e42e",
+        "host-result.json": "f696dcc0f61e357367428af2db492b55d8a6d0fd74621bbc689746fed07b5216",
+        "linux-result.json": "d56982ffe7946cc5573b8b8cb8adc2c101b6024d2f4496e82a8027a7180af94d",
+        "manifest.json": "8b05c604ef5452d4c366ece8319d8a63a9639017dd0de5adee81de8277279b83",
+        "payload-hashes-after-cycle.json": "b16f65043f3e39f7f0623a8f419ed54c6ef819b009a741e05fc47d62209dbff3",
+        "payload-hashes-before-cycle.json": "b16f65043f3e39f7f0623a8f419ed54c6ef819b009a741e05fc47d62209dbff3",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "9d140e45c5d07b9731bc335ef61a350496d583d20192b91549abdf55cc772645",
+        "prepared.dtb": "e0da08ad802b4d2aa1320c46632b3e779a7de2658e9c56a4dbe8e4bcdb3ec231",
+        "status-final.jpg": "5e2a5e23303f593b78e16524f0d1a6dc0859e6580306cc182a86ba6b1c6933e8",
+        "status-initial.jpg": "48d47d4a63fa3a9308d62cf54f20a0507319876a82913d6463e3856366f8de25",
+        "trace-nvme-init.bin": "a3dd9349cff3b761d3ac4936f3a376ae16a7a9436ecdb6a681864cc04092843b",
+        "trace-nvme-init.json": "744df597aa466a73d1581056f14ab3642953949d429997dbbba8c5f440ae502d",
+        "trace-nvme-shutdown.bin": "20b4543de8406e97a389a5085004100ff243f652a8180881874150e7d563ca47",
+        "trace-nvme-shutdown.json": "46e5d1ef95956716f6502debf63d6ccffe1ecc726db2c0413e999daddccb7679",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      },
+      "analysis": {
+        "trace_events": 223,
+        "sart_snapshot_records": 10,
+        "dropped_events": 0,
+        "dropped_snapshots": 0,
+        "m1n1_ans_crashes": 0,
+        "init_count": 1,
+        "shutdown_count": 1,
+        "m1n1_reference_reads_matched": 5,
+        "shutdown_proven": true,
+        "payload_readback_unchanged": true,
+        "protected_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6
+        ],
+        "sart_unchanged_across_sleep_and_resolved_reset": true,
+        "sart_returns_to_initial_entries_after_release": true,
+        "skipped_ans2_snapshot_status": 2,
+        "fresh_ans_manifest_matches_P0": true
+      }
+    }
+  },
+  "conclusion": "P0 warm PASS / P1 cold FAIL with ANS branch 2, crash, reset -62 and no namespace. The grouped parity changes do not fix the observed cold-start failure.",
+  "limitations": [
+    "Grouped test does not attribute individual effects or eliminate interactions.",
+    "The status panel establishes branch/crash/reset/namespace outcome; a raw Linux log and new fault-register context were not exported.",
+    "Dynamic prepared-DTB fields and physical addresses may differ between fresh sessions."
+  ],
+  "next_selected_test": "R: verified warm Linux direct reads, one unbind/rebind of the actual ANS platform device, then repeated direct reads with phase/result reporting. Not prepared or executed in this run.",
+  "disk_write_commands": 0,
+  "installed_bootloader_changed": false,
+  "pushed": false
+}

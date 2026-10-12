@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Preload Linux identically for L0/L1; L1 adds one read/shutdown cycle."""
+"""Matched Linux preload: L0/P0 warm; L1/P1 add one read/shutdown cycle."""
 import argparse
 from datetime import datetime
 import gzip
@@ -38,11 +38,12 @@ def symbols(elf):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--cell", choices=["L0", "L1"], required=True)
+    ap.add_argument("--cell", choices=["L0", "L1", "P0", "P1"], required=True)
     ap.add_argument("--manifest", type=Path, required=True)
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--proxyclient", type=Path, default=Path("/home/btega/bootloader/proxyclient"))
     args = ap.parse_args()
+    cold = args.cell in ("L1", "P1")
     manifest = json.loads(args.manifest.read_text())
     blobs = {name: Path(manifest[name]["path"]).read_bytes() for name in ("kernel", "dtb", "initramfs")}
     for name, raw in blobs.items():
@@ -164,13 +165,13 @@ def main():
                     raise ValueError("Overlapping payload components")
         buffer=call("dummy-read-buffer",lambda:p.memalign(16384,16384))
         check_ram(buffer,16384)
-        # Identical buffer allocation in L0; only L1 issues controller commands.
+        # Identical allocation in both cells; only cold cells use the controller.
         result["read_buffer"]=hex(buffer)
         call("sart-before-cycle",lambda:p.request(0xf04,2,0))
         before=fingerprint("before-cycle")
         if before["kernel"]!=sha(image) or before["initramfs"]!=manifest["initramfs"]["sha256"]:
             raise ValueError("Payload readback differs from host inputs")
-        if args.cell=="L1":
+        if cold:
             ok=call("nvme-first-init",p.nvme_init,45)
             trace=save_trace("nvme-init")
             if ok!=1 or any(e["kind"]=="CRASH" for e in trace["events"]):
@@ -196,15 +197,15 @@ def main():
             if not findings["pass"]:raise ValueError("Pre-handoff shutdown not proven")
         else:
             trace=save_trace("no-storage-cycle")
-            if any(e["kind"]=="INIT_BEGIN" for e in trace["events"]):raise ValueError("L0 unexpectedly used NVMe")
+            if any(e["kind"]=="INIT_BEGIN" for e in trace["events"]):raise ValueError("Warm control unexpectedly used NVMe")
         after=fingerprint("after-cycle")
         if before!=after:raise ValueError("Storage cycle changed a preloaded component")
         result["payload_readback_unchanged"]=True
         # Verify and document the final ANS decision state, outside reset.
         result["ans_cpu_control"]=call("ans-cpu-control",lambda:p.read32(0x481600044))
         result["ans_boot_status"]=call("ans-boot-status",lambda:p.read32(0x4c5cc1300))
-        if args.cell=="L0" and (not(result["ans_cpu_control"]&0x10) or result["ans_boot_status"]!=0xde71ce55):raise ValueError("Warm control is not in the expected iBoot RUN/BOOT_STATUS state")
-        if args.cell=="L1" and result["ans_cpu_control"]&0x10:raise ValueError("Cold comparison CPU is running")
+        if not cold and (not(result["ans_cpu_control"]&0x10) or result["ans_boot_status"]!=0xde71ce55):raise ValueError("Warm control is not in the expected iBoot RUN/BOOT_STATUS state")
+        if cold and result["ans_cpu_control"]&0x10:raise ValueError("Cold comparison CPU is running")
         (args.output/"pre-handoff.json").write_text(json.dumps(result,indent=2)+"\n")
         call("mask-interrupts",lambda:u.msr(DAIF,0xc0))
         result["status"]="HANDOFF_REQUESTED"

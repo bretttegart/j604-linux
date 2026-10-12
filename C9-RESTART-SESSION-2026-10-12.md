@@ -138,4 +138,5 @@ Linux cells need a demonstrated reporting route before execution:
 `console=tty0` and m1n1 USB teardown do not produce kernel logs over this
 proxy. The owner later authorized bounded fixed-screen camera reporting;
 L0/L1 used that route. Pager/long-video captures remain parked. A raw Linux
-log has not been exported by this route; no parity kernel is built or booted.
+log has not been exported by this route. The subsequent
+[parity comparison](C9-PARITY-SESSION-2026-10-12.md) is warm PASS / cold FAIL.
