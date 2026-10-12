@@ -1,0 +1,48 @@
+{
+  "adt_sha256": "a64ec21f9fc087ff852cdea5336112fbb9d2afc552f48b4770b7c4b0953d2c98",
+  "targets": {
+    "bus": "0x29f008000",
+    "ap": "0x49f008000"
+  },
+  "raw_reg_matches": [],
+  "translated_reg_matches": [],
+  "range_translation_matches": [
+    {
+      "path": "/device-tree/arm-io",
+      "index": 0,
+      "bus_start": "0x0",
+      "parent_start": "0x200000000",
+      "size": "0x3a0000000",
+      "translated_target": "0x49f008000"
+    }
+  ],
+  "decode_errors": [],
+  "visited_nodes": 433,
+  "reg_ranges_checked": 544,
+  "sart": {
+    "version": 3,
+    "regs": [
+      {
+        "index": 0,
+        "bus_address": "0x285c50000",
+        "ap_address": "0x485c50000",
+        "size": "0xc000"
+      },
+      {
+        "index": 1,
+        "bus_address": "0x285d44000",
+        "ap_address": "0x485d44000",
+        "size": "0x4000"
+      },
+      {
+        "index": 2,
+        "bus_address": "0x285cc0000",
+        "ap_address": "0x485cc0000",
+        "size": "0x4000"
+      }
+    ],
+    "power_reg_offset": 5096,
+    "power_canary_offset": 0
+  },
+  "caveat": "Register-range lookup only. Firmware VA/bus identity and asynchronous FAR validity are not established."
+}

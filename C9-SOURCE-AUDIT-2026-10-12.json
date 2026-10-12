@@ -1,0 +1,182 @@
+{
+  "upstream_m1n1_commit": "57a9339ffd1876e78297b17d34dece8cff8fa1ba",
+  "files": {
+    "src/nvme.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/nvme.c",
+      "sha256": "708fd1ac87d78c65a5337121bf416b007c1b8b8196ee3e94767d83eb7b5ffa76",
+      "local": {
+        "active": {
+          "sha256": "a99c813c9ce94873aaf02b8b4d92a1be07c80d1eaa631d3cdad9db43808d4d52",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "gravity_git": {
+          "sha256": "a99c813c9ce94873aaf02b8b4d92a1be07c80d1eaa631d3cdad9db43808d4d52",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "stage1_audit": {
+          "sha256": "1e28b549efd7ba637d24ceb3545ebf5ef9837f7b75165618343e0d0d8c76d3f0",
+          "diff_lines": 160,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    },
+    "src/rtkit.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/rtkit.c",
+      "sha256": "46b02873d5454eb7739fb0847b05b4193c3d0ca239b3f402419b97a27faaec9b",
+      "local": {
+        "active": {
+          "sha256": "f0cfc194bd8996abdf404f4d5052d284c76f0ceb9613d77933226990703584f4",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "gravity_git": {
+          "sha256": "f0cfc194bd8996abdf404f4d5052d284c76f0ceb9613d77933226990703584f4",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "stage1_audit": {
+          "sha256": "97135a2203cc7538afb5470c7b76b0f3ef8b2b9eb1c31ec37a14454180ecfe49",
+          "diff_lines": 112,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    },
+    "src/sart.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/sart.c",
+      "sha256": "8c2225a9a86cbb041915ccc5fb800dda6688f998aac86ce1b70fcbd92c950d27",
+      "local": {
+        "active": {
+          "sha256": "5b322fee36e76fd2547fa7d6f824b600d99ca1efa439175d6124703cd7f26fda",
+          "diff_lines": 75,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "gravity_git": {
+          "sha256": "5b322fee36e76fd2547fa7d6f824b600d99ca1efa439175d6124703cd7f26fda",
+          "diff_lines": 75,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "stage1_audit": {
+          "sha256": "8c2225a9a86cbb041915ccc5fb800dda6688f998aac86ce1b70fcbd92c950d27",
+          "diff_lines": 0,
+          "code_equal_ignoring_comments_whitespace": true
+        }
+      }
+    },
+    "src/asc.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/asc.c",
+      "sha256": "15168596b55ac0088cbea265750f97f89b44293a516882149b740c2d3f4c90b2",
+      "local": {
+        "active": {
+          "sha256": "f9cc4532378a29ab39cdfac44de53c402b2dde9d86e82450370b413c52b73459",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "gravity_git": {
+          "sha256": "f9cc4532378a29ab39cdfac44de53c402b2dde9d86e82450370b413c52b73459",
+          "diff_lines": 8,
+          "code_equal_ignoring_comments_whitespace": true
+        },
+        "stage1_audit": {
+          "sha256": "443e1660300cbe8a46cab4ec159835e1f3d437a972876b41c3ba0627e3b6fc21",
+          "diff_lines": 14,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    },
+    "src/pmgr.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/pmgr.c",
+      "sha256": "fc7e81f4b694fa0ee63c9395102ff00aace418faf1957e6a57b183ca163da816",
+      "local": {
+        "active": {
+          "sha256": "2dd6bcb7a3a980375f8cf05663827ac470e5091c2349586cde0fa5f702a3b546",
+          "diff_lines": 102,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "gravity_git": {
+          "sha256": "2dd6bcb7a3a980375f8cf05663827ac470e5091c2349586cde0fa5f702a3b546",
+          "diff_lines": 102,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "stage1_audit": {
+          "sha256": "3ba36eef837396c3d2329724af32c803e25f8c92972dab5246cc6210bf29e714",
+          "diff_lines": 28,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    },
+    "src/kboot.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/kboot.c",
+      "sha256": "7c5c2c96e4629bcb8baeee5bb8a93df0b6bf24bfc71e5193873cf92320f14cba",
+      "local": {
+        "active": {
+          "sha256": "9d966ef288caad3b4f1864cc872c953cbdc23fd76c6c27539d17f9f189bf8809",
+          "diff_lines": 371,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "gravity_git": {
+          "sha256": "9d966ef288caad3b4f1864cc872c953cbdc23fd76c6c27539d17f9f189bf8809",
+          "diff_lines": 371,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "stage1_audit": {
+          "sha256": "a46672b53be8f5073add841b67e7bafe2a04723d452d326e9c9efa8248bb40a0",
+          "diff_lines": 69,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    },
+    "src/chainload.c": {
+      "url": "https://raw.githubusercontent.com/AsahiLinux/m1n1/57a9339ffd1876e78297b17d34dece8cff8fa1ba/src/chainload.c",
+      "sha256": "c2db197f4f7171c84051ddf581baf7d7d5d3e865554b05b108aa54a18602ce50",
+      "local": {
+        "active": {
+          "sha256": "14a8d494ecb740163ca9077540e20289afa98ec9cb6c6ce76070a3c1459ae3ac",
+          "diff_lines": 18,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "gravity_git": {
+          "sha256": "14a8d494ecb740163ca9077540e20289afa98ec9cb6c6ce76070a3c1459ae3ac",
+          "diff_lines": 18,
+          "code_equal_ignoring_comments_whitespace": false
+        },
+        "stage1_audit": {
+          "sha256": "6c5aa4e873879caadddbc836e71a2a555562b0c342bc13e07248cd6d9a89a010",
+          "diff_lines": 32,
+          "code_equal_ignoring_comments_whitespace": false
+        }
+      }
+    }
+  },
+  "checked_at": "2026-10-12",
+  "kernel": {
+    "base": "77cb8f24c2381a8abb7272d7bbdec548d6426a8a",
+    "snapshot_patch_sha256": "8320d3714ffd73e5cc9397bb375303d4087ddf151cf312afb7e0abbb86868d18",
+    "C8_apple_c_sha256": "0b7a8f38deabd7feeaea1855f38f258fa2295e3385895fafe27e52bef7a9d1c3",
+    "snapshot_to_C8_diff_sha256": "a0b2137cd0e2c41510834c0b8251a4794e5a2298dae375c8811d6d2e2cd9d8eb",
+    "cpu_run_mask": "BIT(4)",
+    "cold_branch": "ANSBR 2: reset assert, RTKit reinit, reset deassert, CPU RUN, apple_rtkit_boot",
+    "early_controller_disable_after_rtkit_boot": true
+  },
+  "artifact_checks": {
+    "C7": {
+      "status": 0,
+      "output": "Image.gz: OK\nRUNBOOK.md: OK\nassemble-c7.py: OK\nbuild.log: OK\nc6-to-c7.patch: OK\nkernel.config: OK\nmailbox-host-check: OK\nmailbox-host-check.c: OK\nmailbox-host-check.log: OK\nstage1-shut-audit-cd7.bin: OK\nstage2-crashlog-diag-a7.bin: OK\nupstream-crash.py: OK\nupstream-t8132-j604.dts: OK\nupstream-t8132.dtsi: OK\nvalidation.json: OK\nmanifest.json: OK\n",
+      "stderr": ""
+    },
+    "C8": {
+      "status": 0,
+      "output": "Image.gz: OK\nassemble-c8.py: OK\nbuild.log: OK\nc7-to-c8.patch: OK\nkernel.config: OK\nstage1-shut-audit-cd8.bin: OK\nstage2-crashlog-diag-a8.bin: OK\ntrace-host-check: OK\ntrace-host-check.c: OK\ntrace-host-check.log: OK\nvalidation.json: OK\n",
+      "stderr": ""
+    }
+  },
+  "stage1_prefix": {
+    "bytes": 3866624,
+    "C8_matches_SHUT_AUDIT": true
+  },
+  "limits": [
+    "Sources compared, historical builds not independently reproduced in this round.",
+    "No C9 hardware test, disk write, payload upload, firmware change or blessed-stage1 replacement."
+  ]
+}

@@ -11,29 +11,23 @@ LabOS restore files 26.7.1, and SFR/current 27.0.1. Fresh LabOS uses the
 same captured SFR ANS manifest. The timing of component changes remains
 unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
-> **Start here (Oct 10):** [C7](C7-SESSION-2026-10-10.md) was built, staged, and **booted once**
-> after the owner explicitly authorized the send. It reproduces the ANS crash. It captures complete raw and decoded Cmbx
-> mailbox-history sections using Asahi's documented layout. Only the
-> crashlog reader changes from C6; the owner copies the payload to
-> LINUXESP and is present with the console camera for the boot.
-> [C6](C6-SESSION-2026-10-09.md) reaches the pager
-> and reproduces the cold ANS failure, but completes the diagnostic
-> payload capture: full Crg8 (0x350 B) and Cver (0x90 B). The
-> [full Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md) verifies the reader
-> layout, finds no hidden interrupted context in `unk[64]`, leaves FAR
-> `0x49f008000` untranslated, and keeps the firmware version-split as an
-> observation rather than a proven cause. C7 captured both mailbox-history
-> sections and confirms a fresh HELLO/endpoint handshake followed by the
-> same crash. No management-protocol mismatch is demonstrated; power timing
-> versus firmware/state remains unresolved. The next discriminator is a
-> successful tethered-path comparison. No firmware intervention occurred.
-> [Firmware acquisition and live LabOS capture](FIRMWARE-INVENTORY-2026-10-09.md)
-> verify the matching 27-family ANS code image; running macOS/stage-two
-> remains 26.6.2. [C4 video findings](C4-VIDEO-REVIEW-2026-10-09.md) and
-> [C5](C5-SESSION-2026-10-09.md) are prior comparisons; C/C2's wedge came
-> from ANS reads during reset. The
-> [detailed review](REVIEW-2026-10-07.md) contains the desktop roadmap, and
-> [test results](TEST-RESULTS.md) preserve the hardware observations.
+> **Start here (Oct 12):** [C9 review](C9-REVIEW-2026-10-12.md) contains
+> the verified source comparison, restart matrix and SART capture protocol.
+> [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
+> successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
+> The claimed ANS breakthrough and tracing-induced timing inference are
+> retracted. C8 still reproduces the cold ANS crash; tethered NVMe remains
+> the working control. The warm comparison is captured. Next, separate
+> m1n1 restart behavior from Linux and ESP chainload behavior.
+> [C7](C7-SESSION-2026-10-10.md) preserves complete mailbox histories;
+> [C6](C6-SESSION-2026-10-09.md) and the
+> [Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md) preserve the fault context.
+> The Oct 12 full ADT binary scan verifies bus/AP translation but finds
+> no register range for FAR `0x49f008000` / bus `0x29f008000`.
+> [Firmware provenance](FIRMWARE-INVENTORY-2026-10-09.md) remains an
+> observation, not a proven cause. Further camera/pager diagnostic boots,
+> delay sweeps, IOP OFF and firmware restores are parked. C9 desk work is
+> complete; C9 hardware tests have not run.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -61,6 +55,12 @@ variable. Cmdline: `idle=nop nokaslr loglevel=8 console=tty0
 fbcon=nodefer`.
 
 ## Contents
+
+- `C9-REVIEW-2026-10-12.md` — restart test criteria, ambiguities, SART
+  snapshots, parity recommendation and bootloader shutdown audit.
+- `C9-SOURCE-AUDIT-2026-10-12.json` and `C9-ADT-AUDIT-2026-10-12.json` —
+  pinned source hashes/comparisons and full captured-ADT range lookup.
+- `scripts/c9-adt-audit.py` — offline ADT range lookup; no proxy connection.
 
 - `NEXT-TEST-AFTER-C5-2026-10-09.md` — historical after-C5 plan; its Crg8/Cver
   capture items are completed by C6 and C7 adds mailbox-history capture.
@@ -189,7 +189,7 @@ The existing ramoops/pstore attempt returned no records (`STO 0 C 0 F 0`).
 That recovery path has not worked; it does not prove persistent logging is
 impossible. Prefer complete current-boot logs for the next experiment.
 
-Next: follow [the post-audit diagnostic plan](POST-SHUT-AUDIT-PLAN-2026-10-07.md).
+Next: follow [the C9 restart matrix](C9-REVIEW-2026-10-12.md).
 The older
 `stage2-diag.bin` (`c608401b…`) embeds a diagnostic init that truncates lines
 and retains only the final 45 matching lines, and `ANSBR 3` is commented out
