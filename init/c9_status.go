@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"os"
 	"strconv"
 	"strings"
@@ -80,6 +81,74 @@ type report struct {
 var mu sync.Mutex
 var current report
 
+// Log export: retain RTKit/NVMe kernel lines so the panel can page
+// through them after the verdict; the harness has no other output
+// channel. Lines are uppercased for the panel font.
+var retainedLog []string
+var retainedTruncated bool
+
+const retainedLogCap = 1200
+
+func retainLogLine(msg string) {
+	if !(strings.Contains(msg, "apple-rtkit") || strings.Contains(msg, "nvme-apple") ||
+		strings.Contains(msg, "nvme nvme0:") || strings.Contains(msg, "CRASHLOG")) {
+		return
+	}
+	retainedLog = append(retainedLog, strings.ToUpper(msg))
+	if len(retainedLog) > retainedLogCap {
+		kept := make([]string, 0, retainedLogCap)
+		kept = append(kept, retainedLog[:600]...)
+		kept = append(kept, retainedLog[len(retainedLog)-600:]...)
+		retainedLog = kept
+		retainedTruncated = true
+	}
+}
+
+const logPageWidth = 96
+const logPageLines = 29
+
+func wrapLogLine(s string) []string {
+	var out []string
+	for len(s) > logPageWidth {
+		out = append(out, s[:logPageWidth])
+		s = s[logPageWidth:]
+	}
+	return append(out, s)
+}
+
+func buildLogPages(lines []string, truncated bool) [][]string {
+	var flat []string
+	for _, l := range lines {
+		flat = append(flat, wrapLogLine(l)...)
+	}
+	if len(flat) == 0 {
+		flat = []string{"NO LOG LINES RETAINED"}
+	}
+	total := (len(flat) + logPageLines - 1) / logPageLines
+	var pages [][]string
+	for i := 0; i < len(flat); i += logPageLines {
+		end := i + logPageLines
+		if end > len(flat) {
+			end = len(flat)
+		}
+		content := flat[i:end]
+		crc := crc32.ChecksumIEEE([]byte(strings.Join(content, "\n")))
+		header := fmt.Sprintf("LOGPAGE %d/%d CRC %08X", len(pages)+1, total, crc)
+		if truncated {
+			header += " TRUNC"
+		}
+		pages = append(pages, append([]string{header}, content...))
+	}
+	return pages
+}
+
+func snapshotLogPages() [][]string {
+	mu.Lock()
+	defer mu.Unlock()
+	lines := append([]string(nil), retainedLog...)
+	return buildLogPages(lines, retainedTruncated)
+}
+
 func readTrim(path string) string {
 	b, _ := os.ReadFile(path)
 	return strings.TrimSpace(string(b))
@@ -148,6 +217,7 @@ func parseLog(rec string, r *report, last *int64) {
 	*last = seq
 	r.KmsgRecords++
 	msg := rec[i+1:]
+	retainLogLine(msg)
 	if r.Runtime {
 		parseRuntimeLog(msg, r)
 	}
@@ -523,20 +593,32 @@ func main() {
 	if fbErr != nil && tty >= 0 {
 		_, _, _ = syscall.Syscall(syscall.SYS_IOCTL, uintptr(tty), 0x4b3a, 0)
 	}
+	var verdictAt time.Time
 	for {
 		mu.Lock()
 		r := current
 		mu.Unlock()
+		if (r.Status == "PASS" || r.Status == "FAIL" || r.Status == "INCONCLUSIVE" || strings.HasPrefix(r.Status, "FAIL ")) && verdictAt.IsZero() {
+			verdictAt = time.Now()
+		}
 		if r.ANSCrash && r.Status == "PASS" {
 			r.Status = "FAIL LATE ANS CRASH"
 		}
 		// JSON is on initramfs/tmpfs only. No internal partition is mounted.
 		b, _ := json.MarshalIndent(r, "", "  ")
 		_ = os.WriteFile("/run/c9-result.json", b, 0600)
+		paintLines := lines(r)
+		if !verdictAt.IsZero() && time.Since(verdictAt) > 10*time.Second {
+			pages := snapshotLogPages()
+			if len(pages) > 0 {
+				idx := int(time.Since(verdictAt).Seconds()-10) / 6 % len(pages)
+				paintLines = pages[idx]
+			}
+		}
 		if fbErr == nil {
-			fb.paint(lines(r))
+			fb.paint(paintLines)
 		} else {
-			fmt.Println(strings.Join(lines(r), " | "))
+			fmt.Println(strings.Join(paintLines, " | "))
 		}
 		time.Sleep(2 * time.Second)
 	}
@@ -582,4 +664,24 @@ var font = map[byte][7]uint8{
 	'Z': {0b11111, 0b00001, 0b00010, 0b00100, 0b01000, 0b10000, 0b11111},
 	'-': {0, 0, 0, 0b11111, 0, 0, 0},
 	'/': {0b00001, 0b00001, 0b00010, 0b00100, 0b01000, 0b10000, 0b10000},
+	'J': {0b00111, 0b00010, 0b00010, 0b00010, 0b00010, 0b10010, 0b01100},
+	'.': {0, 0, 0, 0, 0, 0, 0b01100},
+	':': {0, 0b01100, 0, 0, 0b01100, 0, 0},
+	'=': {0, 0, 0b11111, 0, 0b11111, 0, 0},
+	'_': {0, 0, 0, 0, 0, 0, 0b11111},
+	'+': {0, 0b00100, 0b00100, 0b11111, 0b00100, 0b00100, 0},
+	'%': {0b11001, 0b11010, 0b00010, 0b00100, 0b01000, 0b01011, 0b10011},
+	'(': {0b00010, 0b00100, 0b01000, 0b01000, 0b01000, 0b00100, 0b00010},
+	')': {0b01000, 0b00100, 0b00010, 0b00010, 0b00010, 0b00100, 0b01000},
+	',': {0, 0, 0, 0, 0b01100, 0b00100, 0},
+	';': {0, 0b01100, 0, 0, 0b01100, 0b00100, 0},
+	'[': {0b01110, 0b01000, 0b01000, 0b01000, 0b01000, 0b01000, 0b01110},
+	']': {0b01110, 0b00010, 0b00010, 0b00010, 0b00010, 0b00010, 0b01110},
+	'<': {0b00010, 0b00100, 0b01000, 0b10000, 0b01000, 0b00100, 0b00010},
+	'>': {0b01000, 0b00100, 0b00010, 0b00001, 0b00010, 0b00100, 0b01000},
+	'*': {0b00100, 0b10101, 0b01110, 0b00100, 0b01110, 0b10101, 0b00100},
+	'#': {0, 0b01010, 0b01010, 0b11111, 0b01010, 0b11111, 0b01010},
+	'!': {0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0, 0b00100},
+	'?': {0b01110, 0b10001, 0b00010, 0b00100, 0b00100, 0, 0b00100},
+	'"': {0b01010, 0b01010, 0, 0, 0, 0, 0},
 }

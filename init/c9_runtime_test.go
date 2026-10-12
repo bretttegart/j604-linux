@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
+	"hash/crc32"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -378,5 +379,32 @@ func TestE3ProbeMarkers(t *testing.T) {
 	parseRuntimeLog("nvme-apple 4c5cc0000.nvme: E3PROBE done", r)
 	if !r.ProbeDone {
 		t.Fatalf("probe done not recorded")
+	}
+}
+
+func TestRetainAndPaginate(t *testing.T) {
+	retainedLog, retainedTruncated = nil, false
+	defer func() { retainedLog, retainedTruncated = nil, false }()
+	retainLogLine("apple-rtkit 4c5cc0000.nvme: RTKDIAG rx IOP_PWR_ACK msg=0070000000000001 new_state=0x1")
+	retainLogLine("random driver: unrelated line")
+	retainLogLine("nvme-apple 4c5cc0000.nvme: ANSBR 3")
+	if len(retainedLog) != 2 {
+		t.Fatalf("retained %d lines, want 2", len(retainedLog))
+	}
+	if !strings.HasPrefix(retainedLog[0], "APPLE-RTKIT") {
+		t.Fatalf("not uppercased: %q", retainedLog[0])
+	}
+	parts := wrapLogLine(strings.Repeat("AB", 60))
+	if len(parts) != 2 || len(parts[0]) != logPageWidth {
+		t.Fatalf("wrap wrong: %d parts", len(parts))
+	}
+	pages := buildLogPages(retainedLog, false)
+	if len(pages) != 1 {
+		t.Fatalf("pages = %d, want 1", len(pages))
+	}
+	content := pages[0][1:]
+	crc := crc32.ChecksumIEEE([]byte(strings.Join(content, "\n")))
+	if !strings.Contains(pages[0][0], fmt.Sprintf("CRC %08X", crc)) {
+		t.Fatalf("header CRC mismatch: %q", pages[0][0])
 	}
 }
