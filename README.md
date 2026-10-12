@@ -17,6 +17,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > m1n1 proxy restart cells both PASS, with matching block reads, captured
 > shutdown ACKs and preserved SART entries across reset. This establishes
 > restart in those measured m1n1 paths; Linux cold boot remains unresolved.
+> [RAM-preload comparison](C9-PRELOAD-SESSION-2026-10-12.md): L0 PASS with
+> five matching O_DIRECT reads and a fixed status panel captured by the Nikon.
+> L1 is pending a fresh proxy. Linux serial logging remains unavailable.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
@@ -29,9 +32,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > The Oct 12 full ADT binary scan verifies bus/AP translation but finds
 > no register range for FAR `0x49f008000` / bus `0x29f008000`.
 > [Firmware provenance](FIRMWARE-INVENTORY-2026-10-09.md) remains an
-> observation, not a proven cause. Further camera/pager diagnostic boots,
-> delay sweeps, IOP OFF and firmware restores are parked. Next is the matched
-> Linux RAM-preload comparison, after establishing a Linux reporting route.
+> observation, not a proven cause. Full pager/video captures, delay sweeps,
+> IOP OFF and firmware restores are parked. A bounded fixed-screen camera
+> route is now validated; next is L1 of the matched RAM-preload comparison.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -64,6 +67,9 @@ fbcon=nodefer`.
   snapshots, parity recommendation and bootloader shutdown audit.
 - `C9-RESTART-SESSION-2026-10-12.md` and `C9-RESTART-RESULTS-2026-10-12.json`
   — completed upstream/local proxy restart tests; both PASS.
+- `C9-PRELOAD-SESSION-2026-10-12.md`, `init/c9_status.go` and
+  `scripts/run-c9-preload.py` — matched Linux RAM-preload comparison and
+  fixed-screen direct-read reporting; L0 PASS, L1 pending.
 - `C9-SOURCE-AUDIT-2026-10-12.json` and `C9-ADT-AUDIT-2026-10-12.json` —
   pinned source hashes/comparisons and full captured-ADT range lookup.
 - `scripts/c9-adt-audit.py` — offline ADT range lookup; no proxy connection.
