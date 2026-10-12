@@ -5,10 +5,11 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import struct
 
 
 INSTALLER = r'''#!/bin/bash
-set -eu
+set -euo pipefail
 if [ "$(uname -s)" != Darwin ] || [ "$(id -u)" != 0 ]; then
     echo 'Run in Terminal in LabOS paired Recovery, as root.' >&2
     exit 1
@@ -21,9 +22,22 @@ case "$j604_mode" in
     proxy) j604_image="$j604_dir/proxy-fallback.bin"; j604_sha=@PROXY_SHA@ ;;
     *) echo 'Usage: bash install.sh [install|proxy] [LabOS mount point]' >&2; exit 1 ;;
 esac
-j604_actual=$(shasum -a 256 "$j604_image" | awk '{print $1}')
+if [ -x "$j604_dir/c10-sha256" ]; then
+    j604_actual=$("$j604_dir/c10-sha256" "$j604_image")
+elif command -v openssl >/dev/null 2>&1; then
+    j604_hash_line=$(openssl dgst -sha256 "$j604_image")
+    j604_actual=${j604_hash_line##* }
+elif command -v shasum >/dev/null 2>&1; then
+    j604_hash_line=$(shasum -a 256 "$j604_image")
+    j604_actual=${j604_hash_line%% *}
+else
+    echo 'No SHA-256 tool is available in this Recovery environment; stopping.' >&2
+    exit 1
+fi
 if [ "$j604_actual" != "$j604_sha" ]; then
     echo 'Payload SHA-256 mismatch; stopping.' >&2
+    echo "Expected: $j604_sha" >&2
+    echo "Actual:   $j604_actual" >&2
     exit 1
 fi
 j604_info=$(mktemp /tmp/c10-volume.XXXXXX)
@@ -42,7 +56,7 @@ echo 'Boot configuration completed. Shut down, hold Power, then choose LabOS.'
 '''
 
 
-def prepare(manifest_path, output):
+def prepare(manifest_path, output, checksum_helper=None):
     manifest = json.loads(manifest_path.read_text())
     inputs = {
         "linux-shell.bin": manifest["combined"],
@@ -52,9 +66,18 @@ def prepare(manifest_path, output):
         raw = Path(record["path"]).read_bytes()
         if hashlib.sha256(raw).hexdigest() != record["sha256"]:
             raise ValueError(f"Changed input: {name}")
+    if checksum_helper:
+        raw = checksum_helper.read_bytes()
+        if struct.unpack_from("<II", raw) != (0xfeedfacf, 0x0100000c):
+            raise ValueError("Checksum helper must be a 64-bit ARM64 Mach-O")
+        manifest["recovery_checksum_helper"] = {
+            "path": str(checksum_helper), "sha256": hashlib.sha256(raw).hexdigest()}
     output.mkdir(parents=True, exist_ok=False)
     for name, record in inputs.items():
         shutil.copyfile(record["path"], output / name)
+    if checksum_helper:
+        shutil.copyfile(checksum_helper, output / "c10-sha256")
+        (output / "c10-sha256").chmod(0o755)
     installer = INSTALLER.replace("@LINUX_SHA@", manifest["combined"]["sha256"]).replace(
         "@PROXY_SHA@", manifest["m1n1"]["sha256"])
     (output / "install.sh").write_text(installer)
@@ -69,5 +92,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--checksum-helper", type=Path)
     args = parser.parse_args()
-    prepare(args.manifest.resolve(), args.output.resolve())
+    prepare(args.manifest.resolve(), args.output.resolve(), args.checksum_helper)

@@ -94,8 +94,8 @@ and invokes `kmutil configure-boot` with the raw format/entry-point settings.
 The fallback returns to a usable proxy; it is not claimed to reconstruct
 the previous boot object byte-for-byte.
 
-Package: `serve/c10-install.tar.gz`, SHA-256
-`c0bb028021d9f531c0006fb472584a47948e52337b1a07320df90d87ef7539a0`.
+Current package: `serve/c10-recovery.tar.gz`, SHA-256
+`4af2fe1c85742dbb1da98eb672abc46af59fea41330c015802b259b7c153f881`.
 It is served temporarily from Fedora at `http://192.168.0.11:8765/`.
 The operator has instructions to use **macOS paired Recovery Terminal**;
 the minimal Linux shell is not the installation environment.
@@ -104,10 +104,27 @@ In Recovery:
 
 ```sh
 cd /tmp
-curl -f http://192.168.0.11:8765/c10-install.tar.gz -o c10-install.tar.gz
+curl -f http://192.168.0.11:8765/c10-recovery.tar.gz -o c10-install.tar.gz
 tar -xzf c10-install.tar.gz
 bash /tmp/c10-install/install.sh install /Volumes/LabOS
 ```
+
+The original installer reported a payload mismatch in Recovery. The host
+verified the served image and its archive member byte-exact, and the
+operator reported the matching hash prefix `32e0d6`. The checksum-tool
+pipeline could disguise a failed tool as a mismatch; the corrected
+installer prefers OpenSSL, parses output with shell builtins, enables
+pipefail and prints expected/actual hashes on a real mismatch. The Linux
+image is unchanged. An OpenSSL-only environment without awk or shasum
+was tested with the full installer and a mocked kmutil; correct-volume
+acceptance and wrong-volume rejection both passed. The operator then
+confirmed that neither checksum tool is available in this Recovery.
+The current package includes `c10-sha256`, a native ARM64 macOS Go helper
+that only reads the named file and prints its SHA-256. The installer prefers
+this helper. Its source is tracked as `scripts/c10-sha256.go`, checked on
+the host against the complete payload; the Mach-O architecture and code
+signature were inspected. Go build: CGO_ENABLED=0, GOOS=darwin,
+GOARCH=arm64, `-trimpath -ldflags='-s -w'`.
 
 After successful installation, shut down, disconnect the proxy tether,
 select LabOS and run `ans-check`. Repeat on a fresh boot before claiming

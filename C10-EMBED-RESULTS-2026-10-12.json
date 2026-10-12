@@ -60,7 +60,11 @@
   "installed_untethered": {
     "status": "AWAITING_OPERATOR_INSTALL_AND_BOOT",
     "target_system_volume_uuid": "46727C64-DC7F-4B50-844E-5E3CC41A2C02",
-    "package_sha256": "c0bb028021d9f531c0006fb472584a47948e52337b1a07320df90d87ef7539a0",
-    "package_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c10-install.tar.gz"
+    "package_sha256": "4af2fe1c85742dbb1da98eb672abc46af59fea41330c015802b259b7c153f881",
+    "package_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c10-recovery.tar.gz",
+    "original_package_sha256": "c0bb028021d9f531c0006fb472584a47948e52337b1a07320df90d87ef7539a0",
+    "installer_fix": "Prefer OpenSSL; parse checksum with shell builtins; pipefail; distinct checksum-tool failure and expected/actual mismatch output. No Linux payload change.",
+    "recovery_checksum_helper_sha256": "fc6d6f15fd4c8abc7d17ea3086e47f63d3f0e4ac1ebff1e74b16956f664a2ab6",
+    "recovery_checksum_tools": "Operator reports neither shasum nor openssl available. Native Go ARM64 macOS helper supplied; source tested against host sha256."
   }
 }
