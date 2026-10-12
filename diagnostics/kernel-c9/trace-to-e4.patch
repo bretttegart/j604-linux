@@ -1,0 +1,57 @@
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -1183,6 +1183,21 @@
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_wake);
+ 
++/*
++ * C9 E4 diagnostic: m1n1's rtkit_boot sends IOP PWR STATE = INIT before
++ * expecting HELLO on every boot. Linux's branch 2 (cold) never sends it.
++ * Expose the send so the ANS boot path can match m1n1's construction.
++ */
++int apple_rtkit_send_iop_init(struct apple_rtkit *rtk)
++{
++	u64 msg;
++
++	msg = FIELD_PREP(APPLE_RTKIT_MGMT_PWR_STATE, APPLE_RTKIT_PWR_STATE_INIT);
++	return apple_rtkit_management_send(rtk, APPLE_RTKIT_MGMT_SET_IOP_PWR_STATE,
++					   msg);
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_send_iop_init);
++
+ void apple_rtkit_free(struct apple_rtkit *rtk)
+ {
+ 	apple_mbox_stop(rtk->mbox);
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -1145,9 +1145,20 @@
+ 		       anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 		apple_nvme_ansrst(anv, "post-cpu-run", 0, ansrst_t0);
+ 
++		/* C9 E4: m1n1 sends IOP INIT before HELLO on every boot. */
++		ret = apple_rtkit_send_iop_init(anv->rtk);
++		dev_err(anv->dev, "E4 branch2 IOP INIT send ret=%d\n", ret);
++		if (ret)
++			goto out;
++
+ 		ret = apple_rtkit_boot(anv->rtk);
+ 	} else {
+ 		dev_err(anv->dev, "ANSBR 3\n");
++		/* C9 E4: m1n1 strobes CPU start before INIT on every boot. */
++		dev_err(anv->dev, "E4 strobe cpu control before wake\n");
++		writel(readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) |
++		       APPLE_ANS_COPROC_CPU_CONTROL_RUN,
++		       anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 		ret = apple_rtkit_wake(anv->rtk);
+ 	}
+ 
+--- a/include/linux/soc/apple/rtkit.h
++++ b/include/linux/soc/apple/rtkit.h
+@@ -141,6 +141,7 @@
+  * Wake the co-processor up from hibernation mode.
+  */
+ int apple_rtkit_wake(struct apple_rtkit *rtk);
++int apple_rtkit_send_iop_init(struct apple_rtkit *rtk);
+ 
+ /*
+  * Shutdown the co-processor
