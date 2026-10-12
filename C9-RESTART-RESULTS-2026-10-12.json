@@ -1,0 +1,348 @@
+{
+  "U": {
+    "result": {
+      "started_at": "2026-10-12T11:21:55.629250-06:00",
+      "variant": "C9-UPSTREAM",
+      "device": "/dev/m1n1",
+      "reads": {
+        "first": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "second": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        }
+      },
+      "disk_write_commands": 0,
+      "status": "PASS",
+      "adt_sha256": "0fa8417ec426dd275eca5499db4f8a9c71f68faa37e8ef8ae71b859fefe0202c",
+      "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+      "read_buffer": "0x1000804c000",
+      "shutdown": {
+        "pass": true,
+        "issues": [],
+        "reset_aliases": [
+          {
+            "index": 202,
+            "ticks": 2025623797005,
+            "kind": "PMGR_ALIAS",
+            "result": 0,
+            "a": 22,
+            "b": 0,
+            "c": 0,
+            "d": 0
+          },
+          {
+            "index": 203,
+            "ticks": 2025623812606,
+            "kind": "PMGR_ALIAS",
+            "result": -1,
+            "a": 23,
+            "b": 0,
+            "c": 0,
+            "d": 0
+          }
+        ]
+      },
+      "phase": "complete",
+      "finished_at": "2026-10-12T11:21:56.866173-06:00"
+    },
+    "trace_counts": {
+      "events": 376,
+      "snapshots": 15,
+      "event_dropped": 0,
+      "snapshot_dropped": 0
+    },
+    "sart": {
+      "reset_table_unchanged": true,
+      "protected_mask": "0x5f",
+      "protected_entries_preserved_at_release": true,
+      "released_slots": [
+        5,
+        7,
+        8
+      ],
+      "stable_snapshots": true,
+      "base": "0x485c50000"
+    },
+    "crash_events": 0,
+    "init_begins": [
+      {
+        "index": 1,
+        "ticks": 2024668912569,
+        "kind": "INIT_BEGIN",
+        "result": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      },
+      {
+        "index": 208,
+        "ticks": 2025632495806,
+        "kind": "INIT_BEGIN",
+        "result": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      }
+    ],
+    "pmgr_events": [
+      {
+        "index": 200,
+        "ticks": 2025617670847,
+        "kind": "PMGR_BEFORE",
+        "result": 0,
+        "a": 15039726904,
+        "b": 251666687,
+        "c": 148,
+        "d": 0
+      },
+      {
+        "index": 201,
+        "ticks": 2025623797005,
+        "kind": "PMGR_AFTER",
+        "result": 0,
+        "a": 15039726904,
+        "b": 251666687,
+        "c": 148,
+        "d": 0
+      },
+      {
+        "index": 202,
+        "ticks": 2025623797005,
+        "kind": "PMGR_ALIAS",
+        "result": 0,
+        "a": 22,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      },
+      {
+        "index": 203,
+        "ticks": 2025623812606,
+        "kind": "PMGR_ALIAS",
+        "result": -1,
+        "a": 23,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      }
+    ],
+    "artifact_hashes": {
+      "trace-second-init.json": "481347da02d771033e6bb85489da58db5aed1acee1185b2d6225c93a15e6a68f",
+      "second-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "trace-preflight.json": "ac4e0f10dc5365b48918e1f3409346f11802ce8cb1667f9b3fa36bedbb97938c",
+      "trace-first-init.json": "8cb670f5dfb9e6e178d76b1b9a2ecaa0ec516e1b588388b3309fd87a53041aea",
+      "manifest.json": "cd74783c6992e49ba567e1dcef79fd4a0a2cadd235c55d66d746521266147f4a",
+      "first-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "second-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "first-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "trace-second-init.bin": "440b7fde0d6ae2a28a4a8a7b7306a67e24ab9c79408fc760e76b641e395d9237",
+      "trace-second-reads.bin": "46894dce159e114b7e86622d676867df51b3f251cd753485db103f717f841f0e",
+      "second-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "analysis.json": "d3b00b7578939e76b23a94d8dce1581e6573a53bf08e08cf2a154ace57dad2b2",
+      "first-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+      "bootargs.bin": "685448d29d928f89645b2f555f822c4e9883cf29d1d07d6e527c3d431ad90d25",
+      "second-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+      "trace-before-init.json": "b87a483274fb74d605a4d9bf2102a20f053d1919e896e30dc702dd6370729d81",
+      "second-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "adt.bin": "0fa8417ec426dd275eca5499db4f8a9c71f68faa37e8ef8ae71b859fefe0202c",
+      "trace-shutdown.bin": "4b6363f6bb047d9eae095d9a482c82ee370162d3f407636be1dc7f544c774853",
+      "trace-second-reads.json": "9f1607d4510935394117dfd43532cd97c24644b15986128b62c015b35dd6f1df",
+      "first-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "trace-first-reads.bin": "14d6e8ce155d3927b69ea028e91c21b013242e212e088e4bf055499f07cad8a7",
+      "trace-first-init.bin": "3276397ba73c66d7d73588d8ec39ece9542ebcd75a369a379d3836dfa1354659",
+      "trace-shutdown.json": "e34e786b99a819a1911c5382b016d0dfcd223bb4ff54686e4e8e7d0a45c64085",
+      "trace-first-reads.json": "f8cba566ce4bb1f998659efd181a3af0ad9b5a992fa3d2c4eace9c1501b80183",
+      "result.json": "f23f750cd63530d8b10cbc845204ee3b97bd715c7d8ee9ecefc6538ccb0dfc6b",
+      "trace-preflight.bin": "758377abd07feb6728aaaf7da62e5c8e4d2cdb9195bc3b541867733414f60777",
+      "first-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "trace-before-init.bin": "f702fc6c38f89829307c8d112f017e274739c95366cd85eff9d27ca0e6b39b3b"
+    }
+  },
+  "F": {
+    "result": {
+      "started_at": "2026-10-12T11:25:28.381171-06:00",
+      "variant": "C9-LOCAL",
+      "device": "/dev/m1n1",
+      "reads": {
+        "first": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "second": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        }
+      },
+      "disk_write_commands": 0,
+      "status": "PASS",
+      "adt_sha256": "f74b50ba01435ea6c45c74b5d9ff27903e669046d41cfedac2c491bf28a9e443",
+      "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+      "read_buffer": "0x10007c04000",
+      "shutdown": {
+        "pass": true,
+        "issues": [],
+        "reset_aliases": [
+          {
+            "index": 223,
+            "ticks": 75979323624,
+            "kind": "PMGR_ALIAS",
+            "result": 0,
+            "a": 22,
+            "b": 0,
+            "c": 0,
+            "d": 0
+          },
+          {
+            "index": 224,
+            "ticks": 75994239927,
+            "kind": "PMGR_ALIAS",
+            "result": -1,
+            "a": 23,
+            "b": 0,
+            "c": 0,
+            "d": 0
+          }
+        ]
+      },
+      "phase": "complete",
+      "finished_at": "2026-10-12T11:25:31.102267-06:00"
+    },
+    "trace_counts": {
+      "events": 394,
+      "snapshots": 15,
+      "event_dropped": 0,
+      "snapshot_dropped": 0
+    },
+    "sart": {
+      "reset_table_unchanged": true,
+      "protected_mask": "0x5f",
+      "protected_entries_preserved_at_release": true,
+      "released_slots": [
+        5,
+        7,
+        8
+      ],
+      "stable_snapshots": true,
+      "base": "0x485c50000"
+    },
+    "crash_events": 0,
+    "init_begins": [
+      {
+        "index": 1,
+        "ticks": 73615752740,
+        "kind": "INIT_BEGIN",
+        "result": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      },
+      {
+        "index": 229,
+        "ticks": 76049496619,
+        "kind": "INIT_BEGIN",
+        "result": 0,
+        "a": 0,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      }
+    ],
+    "pmgr_events": [
+      {
+        "index": 221,
+        "ticks": 75959416746,
+        "kind": "PMGR_BEFORE",
+        "result": 0,
+        "a": 15039726904,
+        "b": 251666687,
+        "c": 148,
+        "d": 0
+      },
+      {
+        "index": 222,
+        "ticks": 75979323624,
+        "kind": "PMGR_AFTER",
+        "result": 0,
+        "a": 15039726904,
+        "b": 251666687,
+        "c": 148,
+        "d": 0
+      },
+      {
+        "index": 223,
+        "ticks": 75979323624,
+        "kind": "PMGR_ALIAS",
+        "result": 0,
+        "a": 22,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      },
+      {
+        "index": 224,
+        "ticks": 75994239927,
+        "kind": "PMGR_ALIAS",
+        "result": -1,
+        "a": 23,
+        "b": 0,
+        "c": 0,
+        "d": 0
+      }
+    ],
+    "artifact_hashes": {
+      "trace-second-init.json": "dc6449dfc3c7f658fe884332c5527bd7c3aa1904c640a498cb99c4a2fb65c619",
+      "second-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d",
+      "trace-first-init.json": "2a1e8c40a0a3e98470fa85d4793f66486f27d32cb57477d29e6783b41baa7292",
+      "manifest.json": "4a79c1055e4b09f829b9455787579c81ba3f2ee32e6015ae5d466e699090ee8c",
+      "first-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "second-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "first-lba-000128.bin": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "trace-second-init.bin": "dba738f3ef443ff85118dfb47a91631d5b6b49e723a4fa0073295202cabaf579",
+      "trace-second-reads.bin": "b8e97f54c89cc2a350dc292127f93a66434a108d11264c1ececab0f6dfb836a5",
+      "second-lba-000001.bin": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "first-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+      "bootargs.bin": "4f96f48e1e835ee4852c980fae554ec626d13bf8ec9146b9d019a60530945de6",
+      "second-lba-004096.bin": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad",
+      "trace-before-init.json": "90b8324dc81102959bb546b413cf704508d99e5963000f12cc7e41a951c3fd82",
+      "second-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "adt.bin": "f74b50ba01435ea6c45c74b5d9ff27903e669046d41cfedac2c491bf28a9e443",
+      "trace-shutdown.bin": "58cf44d8c6565f0e1b71bc5d36297a4264d1e0c0a41bc3289e71708ee3af308d",
+      "trace-second-reads.json": "c9e2c5c33331a21aacb4bdbb984e4c32321058bc993fb595c6cc960066270bb1",
+      "first-lba-000002.bin": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "trace-first-reads.bin": "07572c3f5bc4ac0a8ac17fc7a45a99a3dccb6c45419377e316b879e0cc0304cf",
+      "trace-first-init.bin": "d618a79c9b37ec69a1673bf30177182281e20b595a514d11d372af0381e7d675",
+      "trace-shutdown.json": "9ef2297f63fd86446b5e785c474de88c01c71c280cc10f5c94977a9791356e7d",
+      "trace-first-reads.json": "0803727381f5373b0f354c1b660c87ead5399768dd0e86ce2fe020ec63c0c4dc",
+      "result.json": "d5568d235c1f7937a1c4652cfbe3757fbc38128964bb29c90fa0d7086d1bc114",
+      "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+      "first-lba-000000.bin": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "trace-before-init.bin": "921fcbe4225780fe4a99ea853d4ae1b96d38644df6843e92d037c8e873a4bed2"
+    }
+  },
+  "cross_cell_read_hashes_equal": true,
+  "method_limits": [
+    "Both builds include C9 read-only observation hooks and use NO_DISPLAY; this is not an uninstrumented run.",
+    "Only proxy restart cells executed; no Linux payload, FAT/stage2 load, unbind/rebind, write test or blessed-stage1 replacement.",
+    "m1n1 rtkit_boot sends INIT; the Linux cold sequence differs.",
+    "SART unchanged on the tested PMGR reset; Linux reset snapshots not yet collected."
+  ]
+}

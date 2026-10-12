@@ -13,6 +13,10 @@ unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
 > **Start here (Oct 12):** [C9 review](C9-REVIEW-2026-10-12.md) contains
 > the verified source comparison, restart matrix and SART capture protocol.
+> [C9 hardware results](C9-RESTART-SESSION-2026-10-12.md): upstream and local
+> m1n1 proxy restart cells both PASS, with matching block reads, captured
+> shutdown ACKs and preserved SART entries across reset. This establishes
+> restart in those measured m1n1 paths; Linux cold boot remains unresolved.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
@@ -26,8 +30,8 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > no register range for FAR `0x49f008000` / bus `0x29f008000`.
 > [Firmware provenance](FIRMWARE-INVENTORY-2026-10-09.md) remains an
 > observation, not a proven cause. Further camera/pager diagnostic boots,
-> delay sweeps, IOP OFF and firmware restores are parked. C9 desk work is
-> complete; C9 hardware tests have not run.
+> delay sweeps, IOP OFF and firmware restores are parked. Next is the matched
+> Linux RAM-preload comparison, after establishing a Linux reporting route.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -58,9 +62,13 @@ fbcon=nodefer`.
 
 - `C9-REVIEW-2026-10-12.md` — restart test criteria, ambiguities, SART
   snapshots, parity recommendation and bootloader shutdown audit.
+- `C9-RESTART-SESSION-2026-10-12.md` and `C9-RESTART-RESULTS-2026-10-12.json`
+  — completed upstream/local proxy restart tests; both PASS.
 - `C9-SOURCE-AUDIT-2026-10-12.json` and `C9-ADT-AUDIT-2026-10-12.json` —
   pinned source hashes/comparisons and full captured-ADT range lookup.
 - `scripts/c9-adt-audit.py` — offline ADT range lookup; no proxy connection.
+- `scripts/prepare-c9-m1n1.py`, `diagnostics/m1n1-c9/` and
+  `scripts/run-c9-restart.py` — bounded C9 capture and one-cell read-only runner.
 
 - `NEXT-TEST-AFTER-C5-2026-10-09.md` — historical after-C5 plan; its Crg8/Cver
   capture items are completed by C6 and C7 adds mailbox-history capture.
