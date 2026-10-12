@@ -96,6 +96,60 @@ func parseRuntimeLog(msg string, r *report) {
 			}
 		}
 	}
+	if strings.Contains(msg, "RTKTRACE begin") && strings.Contains(msg, "phase=teardown") {
+		r.TraceSeen = true
+		for _, field := range strings.Fields(msg) {
+			if v, ok := strings.CutPrefix(field, "total="); ok {
+				r.TraceTotal, _ = strconv.ParseInt(v, 10, 64)
+			}
+			if v, ok := strings.CutPrefix(field, "dropped="); ok {
+				r.TraceDropped, _ = strconv.ParseInt(v, 10, 64)
+			}
+		}
+	}
+	if strings.Contains(msg, "RTKTRACE seq=") {
+		var seq, ns int64
+		var event, ep, msg0s string
+		for _, field := range strings.Fields(msg) {
+			switch {
+			case strings.HasPrefix(field, "seq="):
+				seq, _ = strconv.ParseInt(strings.TrimPrefix(field, "seq="), 10, 64)
+			case strings.HasPrefix(field, "ns="):
+				ns, _ = strconv.ParseInt(strings.TrimPrefix(field, "ns="), 10, 64)
+			case strings.HasPrefix(field, "event="):
+				event = strings.TrimPrefix(field, "event=")
+			case strings.HasPrefix(field, "ep="):
+				ep = strings.TrimPrefix(field, "ep=")
+			case strings.HasPrefix(field, "msg0="):
+				msg0s = strings.TrimPrefix(field, "msg0=")
+			}
+		}
+		if value, perr := strconv.ParseUint(msg0s, 16, 64); perr == nil {
+			mgmtType := (value >> 52) & 0xff
+			switch {
+			case event == "TX_BEGIN" && ep == "00" && mgmtType == 6 && value&0xffff == 1:
+				r.SleepTxSeen = true
+				r.SleepTxSeq = seq
+				r.SleepTxNs = ns
+			case event == "RX" && r.SleepTxSeen && seq > r.SleepTxSeq:
+				r.PostSleepCount++
+				token := "E" + strings.ToUpper(ep)
+				if ep == "00" {
+					token = fmt.Sprintf("E0T%d", mgmtType)
+					if mgmtType == 7 && value&0xffff == 1 {
+						r.SleepAckRing = true
+					}
+				}
+				if ep == "01" && !r.CrashDeltaSeen {
+					r.CrashDeltaSeen = true
+					r.CrashDeltaMs = (ns - r.SleepTxNs) / 1000000
+				}
+				if len(r.PostSleepRx) < 6 {
+					r.PostSleepRx = append(r.PostSleepRx, token)
+				}
+			}
+		}
+	}
 	if !strings.Contains(msg, "nvme-apple "+ansDevice+":") {
 		return
 	}

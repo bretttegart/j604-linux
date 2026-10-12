@@ -60,6 +60,17 @@ type report struct {
 	BootStatus        uint64
 	CPUStateObserved  bool
 	ReinitResult      string
+	TraceSeen         bool
+	TraceTotal        int64
+	TraceDropped      int64
+	SleepTxSeen       bool
+	SleepTxSeq        int64
+	SleepTxNs         int64
+	PostSleepRx       []string
+	PostSleepCount    int
+	SleepAckRing      bool
+	CrashDeltaSeen    bool
+	CrashDeltaMs      int64
 }
 
 var mu sync.Mutex
@@ -404,7 +415,25 @@ func lines(r report) []string {
 		if sleepTx == "" {
 			sleepTx = "NA"
 		}
-		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck, "IOP SLEEP TX " + sleepTx + " ACK " + iopAck, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
+		traceLine := "TRACE NONE"
+		if r.TraceSeen {
+			traceLine = fmt.Sprintf("TRACE TOT %d DROP %d", r.TraceTotal, r.TraceDropped)
+		}
+		rxLine := "RX>SLEEP NONE"
+		if r.PostSleepCount > 0 {
+			rxLine = "RX>SLEEP " + strings.Join(r.PostSleepRx, " ")
+			if extra := r.PostSleepCount - len(r.PostSleepRx); extra > 0 {
+				rxLine += fmt.Sprintf(" +%d", extra)
+			}
+		}
+		ringLine := "RING ACK NO"
+		if r.SleepAckRing {
+			ringLine = "RING ACK YES"
+		}
+		if r.CrashDeltaSeen {
+			ringLine += fmt.Sprintf(" CRASH +%dMS", r.CrashDeltaMs)
+		}
+		return []string{r.Cell, status, fmt.Sprintf("BEFORE MATCH %d OF 5", r.BeforeMatched), fmt.Sprintf("AFTER MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "AP SLEEP ACK " + apAck, "IOP SLEEP TX " + sleepTx + " ACK " + iopAck, traceLine, rxLine, ringLine, "SHUTDOWN PREP " + prep, "CPU " + cpu, "RTKIT REINIT " + reinit, "TEARDOWN " + teardown, fmt.Sprintf("LOG GAP %d DROP %d", r.KmsgGaps, r.RuntimeLogDropped), "LOG ERR " + logErr, "UNBIND " + u + " BIND " + b, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 	}
 	return []string{r.Cell, status, fmt.Sprintf("DIRECT MATCH %d OF 5", r.Matched), "NAMESPACE " + ns, "ANS BR " + branch, "ANS CRASH " + crash, "RESET " + reset, "BOOT " + boot, "PHASE " + r.Phase, "ERROR " + err}
 }

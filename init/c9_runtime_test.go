@@ -312,3 +312,33 @@ func TestBarrierWritesFinalizedRecordAndMatchesReadback(t *testing.T) {
 		t.Fatalf("readback %q", r.Marker)
 	}
 }
+
+func TestTraceRingPostSleepWindow(t *testing.T) {
+	r := &report{Runtime: true}
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKTRACE begin v=1 mgmt=1 phase=teardown ret=-62 cap=8192 count=900 total=900 dropped=0 cutoff_ns=999", r)
+	if !r.TraceSeen || r.TraceTotal != 900 || r.TraceDropped != 0 {
+		t.Fatalf("header parse: %+v", r)
+	}
+	// An IOP SLEEP ACK that arrives before the sleep request must not count.
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKTRACE seq=10 ns=1000000 event=RX ep=00 msg0=0070000000000001 msg1=0000000000000000 tag=0 aux=0", r)
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKTRACE seq=20 ns=2000000 event=TX_BEGIN ep=00 msg0=0060000000000001 msg1=0000000000000000 tag=0 aux=0", r)
+	if !r.SleepTxSeen || r.SleepTxSeq != 20 {
+		t.Fatalf("sleep tx not recorded: %+v", r)
+	}
+	if r.SleepAckRing || r.PostSleepCount != 0 {
+		t.Fatalf("pre-sleep ACK leaked into window: %+v", r)
+	}
+	// Crashlog endpoint receive 250 ms after the sleep send, no IOP ACK.
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKTRACE seq=21 ns=252000000 event=RX ep=01 msg0=0000000000000001 msg1=0000000000000001 tag=0 aux=0", r)
+	if r.SleepAckRing {
+		t.Fatalf("crashlog RX must not set SleepAckRing")
+	}
+	if !r.CrashDeltaSeen || r.CrashDeltaMs != 250 {
+		t.Fatalf("crash delta: seen=%v ms=%d", r.CrashDeltaSeen, r.CrashDeltaMs)
+	}
+	// Now the ACK lands in the ring: it must be credited.
+	parseRuntimeLog("apple-rtkit 4c5cc0000.nvme: RTKTRACE seq=22 ns=300000000 event=RX ep=00 msg0=0070000000000001 msg1=0000000000000000 tag=0 aux=0", r)
+	if !r.SleepAckRing || r.PostSleepCount != 2 {
+		t.Fatalf("post-sleep ACK not credited: %+v", r)
+	}
+}
