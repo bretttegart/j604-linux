@@ -1,7 +1,7 @@
 {
   "date": "2026-10-12",
   "cell": "C9 R (ordering diagnostic)",
-  "status": "PREPARED, NOT YET RUN",
+  "status": "FIRST RUN COMPLETE; SECOND DIAGNOSTIC INITRAMFS PREPARED, AWAITING FRESH PROXY",
   "experiment": "R-order: warm reads, one ANS unbind; AP QUIESCED/IOP SLEEP, CPU stop, RTKit reinit/buffer release, power-domain detach; then bind and verify reads",
   "kernel_change": "Targeted remove path stops ANS coprocessor before RTKit reinit and shared-buffer release; logs phase returns and CPU/boot state. Other shutdown/suspend paths unchanged.",
   "panel_fields": [
@@ -23,9 +23,9 @@
       "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01"
     },
     "initramfs": {
-      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build/initramfs.cpio.gz",
-      "bytes": 987386,
-      "sha256": "b7c682b8acc99a8291bd8c360ed736452df8a205f093bf13b49c4382c534be75"
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/init-build-v2/initramfs.cpio.gz",
+      "bytes": 1016581,
+      "sha256": "2eb806cc1229a6a0b8eaa6da3332f56e736829ac3e1b9b6bf4d4a00fe9d90dd6"
     },
     "m1n1": {
       "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
@@ -126,5 +126,59 @@
     "kernel": "make -j4 ARCH=arm64 LLVM=1 Image.gz: success",
     "init": "python3 scripts/build-c9-init.py: ARM64 ELF and exact deterministic newc/gzip archive verified",
     "patch": "git apply --check against preserved C9-PARITY-20261012/kernel-src: success"
+  },
+  "runtime_controls": {
+    "target_device": "4c5cc0000.nvme",
+    "driver": "nvme-apple",
+    "required_compatible": "apple,t8132-nvme-ans2",
+    "unbind_maximum": 1,
+    "bind_maximum": 1,
+    "control_deadline_seconds": 90,
+    "direct_read_deadline_seconds": 90,
+    "namespace_deadline_seconds": 45,
+    "log_barrier_deadline_seconds": 5,
+    "mount_holder_identity_gates": true,
+    "device_renumbering_supported": true,
+    "retry_after_failure": false,
+    "required_namespace_id": 1,
+    "all_ans_namespaces_checked_for_mounts_and_holders": true,
+    "log_marker_newline_terminated": true,
+    "runtime_log_retained_capacity": 1024
+  },
+  "runtime_source_sha256": "8ab72f95cbfa62f53d90507d0bcd5f0e0b5c76e15359d58a99d33481dbe63988",
+  "first_run": {
+    "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN",
+    "captured_at": "2026-10-12T14:01 MDT",
+    "boot_status": "BOOT_REQUEST_ACKNOWLEDGED",
+    "kboot_return": 0,
+    "m1n1_init_events": 0,
+    "payload_readback_unchanged": true,
+    "before_reads": "5/5 match",
+    "after_reads": "0/5; no rebind attempted",
+    "unbind": "OK",
+    "bind": "not attempted",
+    "panel": {
+      "status": "FAIL",
+      "ans_branch": "3",
+      "ans_crash": "YES",
+      "reset": "NONE",
+      "namespace": "NO after intentional unbind",
+      "phase": "CHECK UNBOUND",
+      "error": "LOG INCOMPLETE",
+      "log_gaps": 0,
+      "runtime_log_dropped": 23,
+      "log_reader_error": "NONE",
+      "latest_teardown_marker": "GENPD END"
+    },
+    "frame_sha256": "af236c3dff9ea0b3837165522119f52360790abc81566527b5556b3262da9284",
+    "interpretation": "retention-cap failure prevented the verifier reaching its post-unbind crash gate; crash notification was observed, but ACK/shutdown/CPU/reinit return values were not displayed"
+  },
+  "second_run": {
+    "output": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/R-ORDER-RUN2",
+    "status": "PREPARED, AWAITING FRESH PROXY",
+    "change": "1024 retained runtime messages and explicit AP/IOP sleep ACK, shutdown return, CPU_CONTROL/BOOT_STATUS, RTKit reinit return, and detach screen fields",
+    "kernel": "same tested ordering image",
+    "runtime_source_sha256": "8ab72f95cbfa62f53d90507d0bcd5f0e0b5c76e15359d58a99d33481dbe63988",
+    "initramfs_sha256": "2eb806cc1229a6a0b8eaa6da3332f56e736829ac3e1b9b6bf4d4a00fe9d90dd6"
   }
 }

@@ -28,8 +28,27 @@ detach. Existing RTKit diagnostics report the actual AP/IOP acknowledgements.
 The kernel built successfully with `ARCH=arm64 LLVM=1 Image.gz`; its config
 SHA-256 matches P0/P1. The ARM64 fixed init and deterministic initramfs also
 build successfully. `git apply --check` accepted the saved parity-to-order
-patch against the preserved parity source. These are preparation results;
-the Mac has not run this image yet.
+patch against the preserved parity source.
+
+## First run
+
+The first ordering image was handed off at 14:01 MDT from a fresh proxy.
+The handoff returned 0, the host trace had no NVMe init, and payload hashes
+were unchanged. Linux matched all five warm direct reads, performed one
+unbind, and displayed `TEARDOWN GENPD DETACH END`. It also displayed an ANS
+crash notification, zero printk sequence gaps, no log-reader error, and 23
+selected messages dropped after the verifier's 256-message retention cap.
+Because that cap was treated as a log-integrity failure, the verifier stopped
+before evaluating its crash gate and did not bind the device. The crash flag
+is evidence that a crash notification arrived during this run; it is not yet
+the result of the verifier's post-unbind crash decision.
+
+The final screen does not expose the AP/IOP sleep ACKs, shutdown return, CPU
+register readback or RTKit reinit return. A second initramfs has been built
+with a 1024-message retention cap and explicit fields for those values. It
+uses the same kernel and is ready for a fresh proxy run. The first run's
+initramfs and screen capture are preserved under
+`/home/btega/j604-boot/ans-review-n6miVhGq/C9-ORDER-20261012/`.
 
 Artifacts and hashes are recorded in
 [`C9-ORDER-RESULTS-2026-10-12.json`](C9-ORDER-RESULTS-2026-10-12.json) and

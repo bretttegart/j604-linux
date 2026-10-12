@@ -32,8 +32,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > match; one unbind completes, then ANS crash is reported before bind.
 > The log-integrity check also fails; no rebind is attempted.
 > [Teardown ordering experiment](C9-ORDER-SESSION-2026-10-12.md): a diagnostic
-> image is prepared to stop the ANS CPU after sleep acknowledgements and
-> before RTKit buffer release. It has not yet been run on the Mac.
+> image stopped at the verifier's 256-message detail cap after teardown
+> reached its final marker. A larger buffer and explicit ACK/register fields
+> are prepared for a fresh-proxy repeat.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are

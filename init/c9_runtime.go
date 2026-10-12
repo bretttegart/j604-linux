@@ -26,6 +26,35 @@ func parseRuntimeLog(msg string, r *report) {
 	if strings.Contains(msg, "nvme-apple "+ansDevice+":") && strings.Contains(msg, "ANSRM ") {
 		if p := strings.Index(msg, "ANSRM "); p >= 0 {
 			r.Teardown = strings.TrimSpace(msg[p+6:])
+			switch {
+			case strings.HasPrefix(r.Teardown, "shutdown prepare ret="):
+				r.ShutdownPrepare = strings.TrimPrefix(r.Teardown, "shutdown prepare ret=")
+			case strings.HasPrefix(r.Teardown, "cpu control="):
+				var cpu, boot uint64
+				if _, err := fmt.Sscanf(r.Teardown, "cpu control=%x boot=%x", &cpu, &boot); err == nil {
+					r.CPUControl, r.BootStatus, r.CPUStateObserved = cpu, boot, true
+				}
+			case strings.HasPrefix(r.Teardown, "reinit ret="):
+				r.ReinitResult = strings.TrimPrefix(r.Teardown, "reinit ret=")
+			case r.Teardown == "genpd detach end":
+				r.Teardown = "GENPD END"
+			}
+		}
+	}
+	if strings.Contains(msg, "RTKDIAG rx AP_PWR_ACK") {
+		if parts := strings.SplitN(msg, "new_state=", 2); len(parts) == 2 {
+			state, _, _ := strings.Cut(parts[1], " ")
+			if state == "0x10" {
+				r.APSleepAck = true
+			}
+		}
+	}
+	if strings.Contains(msg, "RTKDIAG rx IOP_PWR_ACK") {
+		if parts := strings.SplitN(msg, "new_state=", 2); len(parts) == 2 {
+			state, _, _ := strings.Cut(parts[1], " ")
+			if state == "0x1" {
+				r.IOPSleepAck = true
+			}
 		}
 	}
 	if strings.HasPrefix(msg, "nvme nvme") {
@@ -55,7 +84,7 @@ func parseRuntimeLog(msg string, r *report) {
 		}
 	}
 	if keep {
-		if len(r.RuntimeLog) < 256 {
+		if len(r.RuntimeLog) < 1024 {
 			r.RuntimeLog = append(r.RuntimeLog, msg)
 		} else {
 			r.RuntimeLogDropped++
