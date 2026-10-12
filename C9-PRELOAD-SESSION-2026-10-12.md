@@ -1,6 +1,6 @@
 # C9 Linux RAM-preload comparison — Oct 12, 2026
 
-**L0 PASS; L1 awaits a fresh LabOS proxy.** This extends the
+**L0 PASS; L1 FAIL with cold ANS crash, reset `-62`, no namespace.** This extends the
 [completed m1n1 U/F restart tests](C9-RESTART-SESSION-2026-10-12.md).
 The comparison keeps the C8 kernel and DTB unchanged and replaces the
 pager init with a bounded, fixed-screen direct-read verifier.
@@ -17,6 +17,12 @@ capture remains parked. The first frame on opening the Nikon UVC stream
 was cached; discarding the first 60 input frames produced the live panel.
 One settled frame is sufficient to read the ten large status lines.
 Do not interpret the first startup frame as the current Mac display.
+
+For L1 the Nikon battery was exhausted. The owner connected a Logitech
+HD Pro Webcam C920 (`046d:08e5`) and rebooted to a fresh LabOS proxy.
+The webcam was verified before handoff; bounded 1920×1080 MJPEG stills
+with 60 startup frames discarded clearly show the complete result panel.
+This changes the external reporting camera, not any boot component.
 
 The native Linux kernel still has USB/gadget support disabled. These
 camera frames are the Linux result evidence; the USB proxy carries only
@@ -61,7 +67,7 @@ from the pinned raw ELF's `dt` symbol in normal DRAM, with pointer/magic/
 size checks. This adds no device MMIO probe.
 
 Both cells allocate the same dummy aligned read buffer. L0 issues no m1n1
-NVMe init/read/shutdown. L1 will issue exactly one init/read/shutdown and
+NVMe init/read/shutdown. L1 issued exactly one init/read/shutdown and
 no second m1n1 initialization. Queue/RTKit buffer intervals are checked
 against the preloaded components. Complete kernel/initramfs/prepared-DTB
 readbacks are hashed before and after the optional cycle. Handoff is
@@ -108,19 +114,65 @@ host result remains in `host-result-original.json`, with a correction in
 to retain the reply value. Neither a host status nor a successful upload
 alone establishes the Linux outcome.
 
-## L1 and interpretation
+## L1 — completed
+
+One temporary m1n1 send and one Linux handoff, Oct 12 at 12:55 MDT,
+after a fresh LabOS reboot. All four boot component hashes match L0;
+the fresh ANS manifest is byte-identical to L0's capture. m1n1 read all
+five expected blocks successfully, then completed one normal shutdown.
+There was no second m1n1 initialization.
+
+The trace has 223 events and ten SART snapshot records, with zero drops
+and no m1n1 ANS crash. Actual AP QUIESCED and IOP SLEEP ACKs precede
+successful internal sleep-switch completion, CPU RUN clear, and the
+resolved ANS PMGR reset. The unresolved ANS2 alias returns `-1`; its
+snapshot is explicitly skipped (status 2), not evidence of zeroed slots.
+SART entries remain identical across sleep and the resolved reset.
+RTKit release removes slots 5, 7 and 8; all protected slots
+0–4 and 6 (`0x5f`) retain their complete values.
+
+Kernel, initramfs and prepared-DTB readback hashes are unchanged across
+the cycle. Queue and RTKit buffers do not overlap the preloaded payloads.
+Pre-handoff CPU_CONTROL=`0x0`, BOOT_STATUS=`0x0`. The boot request
+acknowledges with integer zero; Linux outcome comes from the camera.
+
+| Field | Observed |
+|---|---|
+| Cell / result | C9 L1 / FAIL |
+| Direct reads | MATCH 0 OF 5; no Linux reads attempted without namespace |
+| Namespace | NO |
+| ANS branch | 2 (cold reset/boot) |
+| ANS crash / reset error | YES / `-62` |
+| Boot ID prefix | `4e688ed5` |
+| Phase / error | NO NAMESPACE / NO NVME |
+
+The early frames report WAIT while already showing the ANS crash and
+reset error. The final frame, after the namespace deadline, reports FAIL.
+Primary frame: `L1-RUN/status-final.jpg`, SHA-256
+`d67f562c23c587c807d45ce7ba14b234ed9da0e36943635939f4d6ee49d77010`.
+`L1-RUN/linux-result.json` is a manual transcription checked against this
+frame. `evidence-analysis.json` records the offline trace/hash checks.
+The [machine summary](C9-PRELOAD-RESULTS-2026-10-12.json) includes both
+cells and evidence hashes; raw blocks and camera images remain local.
+
+## Interpretation and next discriminator
 
 L0 validates the new preload layout/reporting path and actual Linux direct
-I/O without prior m1n1 storage use. L1 needs a fresh LabOS proxy and the
-same loading steps followed by one m1n1 init/read/shutdown. Its cold handoff
-must have RUN clear. A paired L1 failure would reproduce the ANS problem
-without FAT loading or stage2 relocation. A paired pass would shift the
-next comparison toward chain-specific state. Neither outcome attributes
-the cause to a single driver operation.
+I/O without prior m1n1 storage use. L1 reproduces the cold ANS failure
+after one proven m1n1 init/read/shutdown cycle, with the Linux payload
+already in RAM and verified unchanged. FAT loading and stage2 relocation
+are therefore unnecessary to reproduce this failure. This supports
+investigating Linux's cold restart and the firmware-visible handoff state;
+it does not identify a specific faulty operation or establish that all
+chain-specific factors are irrelevant. The kernel still lacks digital
+USB log export, so this run does not provide a raw Linux crash log.
 
 One additional observation from U/F is preserved for possible follow-up:
 their first and second init reused the exact same three RTKit buffer
 physical intervals. Their PASS results therefore do not yet test a restart
 that relocates those buffers. This is a capture fact, not proof of a stale
 buffer defect. An address-changing m1n1 restart would be a useful later
-discriminator if L1 fails; it has not been run.
+discriminator now that L1 fails; it has not been run. It can test whether
+the successful m1n1 restart depends on retaining buffer addresses before
+selecting a Linux RTKit/EP7 parity experiment. No installed bootloader
+replacement is needed for that proxy experiment.

@@ -18,14 +18,17 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > shutdown ACKs and preserved SART entries across reset. This establishes
 > restart in those measured m1n1 paths; Linux cold boot remains unresolved.
 > [RAM-preload comparison](C9-PRELOAD-SESSION-2026-10-12.md): L0 PASS with
-> five matching O_DIRECT reads and a fixed status panel captured by the Nikon.
-> L1 is pending a fresh proxy. Linux serial logging remains unavailable.
+> five matching O_DIRECT reads; L1 FAIL with cold ANS crash, reset `-62`
+> and no namespace. Both are verified by fixed-screen camera captures.
+> L1 reproduces without FAT loading or stage2 relocation, after proven
+> m1n1 reads/shutdown and unchanged Linux RAM payloads. Linux serial
+> logging remains unavailable.
 > [C8's interpretation is corrected](C8-SESSION-2026-10-10.md): the
 > successful helper ACKs belonged to MTP (`394600000.mtp`), not ANS.
 > The claimed ANS breakthrough and tracing-induced timing inference are
 > retracted. C8 still reproduces the cold ANS crash; tethered NVMe remains
-> the working control. The warm comparison is captured. Next, separate
-> m1n1 restart behavior from Linux and ESP chainload behavior.
+> the working control. m1n1 restart passes while Linux cold restart fails;
+> the specific cause remains unresolved.
 > [C7](C7-SESSION-2026-10-10.md) preserves complete mailbox histories;
 > [C6](C6-SESSION-2026-10-09.md) and the
 > [Crg8 analysis](CRG8-ANALYSIS-2026-10-09.md) preserve the fault context.
@@ -34,7 +37,9 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > [Firmware provenance](FIRMWARE-INVENTORY-2026-10-09.md) remains an
 > observation, not a proven cause. Full pager/video captures, delay sweeps,
 > IOP OFF and firmware restores are parked. A bounded fixed-screen camera
-> route is now validated; next is L1 of the matched RAM-preload comparison.
+> route is validated with the Nikon and replacement C920 webcam. Next
+> discriminator: m1n1 restart with changed RTKit buffer addresses; the
+> successful U/F restarts reused those addresses. This has not been run.
 
 > **Snapshot note (Oct 7, 2026):** patches and init were regenerated
 > from the live trees this day, so the files below now include the
@@ -67,9 +72,10 @@ fbcon=nodefer`.
   snapshots, parity recommendation and bootloader shutdown audit.
 - `C9-RESTART-SESSION-2026-10-12.md` and `C9-RESTART-RESULTS-2026-10-12.json`
   — completed upstream/local proxy restart tests; both PASS.
-- `C9-PRELOAD-SESSION-2026-10-12.md`, `init/c9_status.go` and
+- `C9-PRELOAD-SESSION-2026-10-12.md`, `C9-PRELOAD-RESULTS-2026-10-12.json`,
+  `init/c9_status.go` and
   `scripts/run-c9-preload.py` — matched Linux RAM-preload comparison and
-  fixed-screen direct-read reporting; L0 PASS, L1 pending.
+  fixed-screen direct-read reporting; L0 PASS, L1 FAIL (cold ANS crash).
 - `C9-SOURCE-AUDIT-2026-10-12.json` and `C9-ADT-AUDIT-2026-10-12.json` —
   pinned source hashes/comparisons and full captured-ADT range lookup.
 - `scripts/c9-adt-audit.py` — offline ADT range lookup; no proxy connection.

@@ -1,0 +1,340 @@
+{
+  "date": "2026-10-12",
+  "inputs": {
+    "created_at": "2026-10-12",
+    "m1n1": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1.bin",
+      "sha256": "8497c947355557e4dacbc9bc70226ec68894424f6a65b3e2214e3d977165fbcf",
+      "elf": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-PREP-20261012/local-src/build/m1n1-raw.elf",
+      "elf_sha256": "dbba66a75715faa2e6f7c3e9bec057aac7f9cbadeef8c0527cc02a8ecb8f3e3b"
+    },
+    "expected_read_hashes": {
+      "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+      "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+      "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+      "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+      "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+    },
+    "init_source_sha256": "c97d1757ecca07bc1a7fda8be4c94ff27a031fa641cb93c96438ed469881a4d7",
+    "reporting": "One fixed framebuffer summary captured through bounded Nikon still frames; no pager or long recording.",
+    "kernel": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C8/Image.gz",
+      "sha256": "f17f1c9c835af2f130c0371188f33a97e68d45463bafd7d08dca6d47bd074e0f",
+      "bytes": 2944930
+    },
+    "dtb": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/common/t8132-j604-ramoops.dtb",
+      "sha256": "d7091e7449a92d8ca62d6c4613cff8fe0ae86451d4e81af52c5eb56e1d84dc01",
+      "bytes": 35374
+    },
+    "initramfs": {
+      "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-L-PREP-20261012/initramfs.cpio.gz",
+      "sha256": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+      "bytes": 858052
+    }
+  },
+  "run_directory": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-L-PREP-20261012",
+  "cells": {
+    "L0": {
+      "host": {
+        "cell": "L0",
+        "started_at": "2026-10-12T12:16:34.752711-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED_WRAPPER_NO_RETURN",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099792646144,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1099791138816,
+            "bytes": 858052
+          },
+          "prepared-dtb": {
+            "address": 1099653824512,
+            "bytes": 37060
+          }
+        },
+        "m1n1_base": "0x100056e8000",
+        "host_heap": {
+          "base": "0x1001079c000",
+          "end": "0x1005079c000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-L0",
+        "read_buffer": "0x100087c0000",
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 16,
+        "ans_boot_status": 3732000341,
+        "kboot_return": null,
+        "finished_at": "2026-10-12T12:16:36.931376-06:00",
+        "host_classification_correction": "Python M1N1Proxy.kboot_boot calls request but discards its return. None was wrongly classified as a rejected handoff. The request completed without exception; settled camera frame proves Linux L0 PASS. No second send occurred."
+      },
+      "linux": {
+        "cell": "L0",
+        "linux_result": "PASS",
+        "report_source": "Manually verified settled Nikon frame",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-L-PREP-20261012/L0-RUN/status-settled.jpg",
+        "frame_sha256": "4bcd54e3c123adad79573091dec9748b1861333c46104f193cddcd4be2f43a4f",
+        "camera_startup_frames_discarded": 60,
+        "boot_id_prefix": "eb10f668",
+        "matched_direct_reads": 5,
+        "read_total": 5,
+        "namespace_present": true,
+        "ans_branch": 3,
+        "ans_crash": false,
+        "reset_error": null,
+        "phase": "READS MATCH",
+        "error": null,
+        "payload_readback_unchanged": true,
+        "m1n1_storage_cycle": false,
+        "ans_before_handoff": {
+          "cpu_control": "0x10",
+          "boot_status": "0xde71ce55"
+        },
+        "host_result_correction": "Python M1N1Proxy.kboot_boot calls request but discards its return. None was wrongly classified as a rejected handoff. The request completed without exception; settled camera frame proves Linux L0 PASS. No second send occurred."
+      },
+      "payload_hashes": {
+        "kernel": "709dd665ec9bde88e5959e22660a33bed70932c244647095d76ba93a37da580f",
+        "initramfs": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+        "prepared-dtb": "a8312d0f73bbdc68cdac8f1c20cc202d9a2c867499293bfce85975e85c5a400b"
+      },
+      "evidence_sha256": {
+        "host-result-original.json": "ea9cd783369bd72be68d22c7cdfe58ef2dd4e14144856b6a5e85650f35d5226e",
+        "host-result.json": "66288299854ded4ef7f474d08249befa1ef48d38d70b86bfe05bc16364be296a",
+        "linux-result.json": "0c6a33d8c031828a357dd6de80bade54105686dac110e5497596908f8b4a48c5",
+        "manifest.json": "c7642956f1de81e770cabb8811756e278fc66cbbf2a33baad00a2a3bac844484",
+        "payload-hashes-after-cycle.json": "a982f9e2301db027df2248abb451514345fb090cfdb3aca90381fe8d956a5734",
+        "payload-hashes-before-cycle.json": "a982f9e2301db027df2248abb451514345fb090cfdb3aca90381fe8d956a5734",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "b67e4dadcb275136bb00778895f7515b1a440b3955d00a073ac3097f5606603a",
+        "prepared.dtb": "a8312d0f73bbdc68cdac8f1c20cc202d9a2c867499293bfce85975e85c5a400b",
+        "prepared.dts": "049e769c6adcad05235ebe43b0a4b3bb4f4a6fc62356c1739e3e07ec58f65384",
+        "status-1.jpg": "d5ce88113fd849a60805686f5cda6eaf136f23e77261a5cf94451dcd9c699407",
+        "status-settled.jpg": "4bcd54e3c123adad79573091dec9748b1861333c46104f193cddcd4be2f43a4f",
+        "trace-no-storage-cycle.bin": "ece5833433bd10995572ca9893b430f4708830c9b42158087329b4e54718bc5a",
+        "trace-no-storage-cycle.json": "764afd16c077fa5f0569e27fc05e6934df3173ea335e785d3e3694c46ee9178b",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      }
+    },
+    "L1": {
+      "host": {
+        "cell": "L1",
+        "started_at": "2026-10-12T12:55:37.813629-06:00",
+        "status": "BOOT_REQUEST_ACKNOWLEDGED",
+        "disk_write_commands": 0,
+        "regions": {
+          "kernel": {
+            "address": 1099777966080,
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": 1099776065536,
+            "bytes": 858052
+          },
+          "prepared-dtb": {
+            "address": 1099638784000,
+            "bytes": 37060
+          }
+        },
+        "m1n1_base": "0x10004890000",
+        "host_heap": {
+          "base": "0x1000f944000",
+          "end": "0x1004f944000"
+        },
+        "ans_manifest_hash_from_adt": "315d71cc99ad4bb2a7d7717ebcd7605bdf01025c9aa74418d34bfde0713d7b3f643b26de2d6ef4336d60b5e4f1cc9d27",
+        "cmdline": "idle=nop nokaslr loglevel=8 console=tty0 fbcon=nodefer j604.test=C9-L1",
+        "read_buffer": "0x10007968000",
+        "m1n1_reads": {
+          "0": "2cc900b9134c8356277c7769603665459756fd13b4689e9efa4aaf427859d27f",
+          "1": "7640546f91198e6828ed26fa01125f31d1b248cdedf07367745a1562b6401c92",
+          "2": "8116d3799fec8e660c834b28302606d160308566a8169cfde5c3d223db7e357e",
+          "128": "dcaef21864d55891725ab4985799fe231d960d882b1c0accfc91f5dda4daf4a2",
+          "4096": "d62b62a7ee8a9ab183ff7a9b838f0c28de1560671d67cc8b5af22805b7c712ad"
+        },
+        "shutdown": {
+          "pass": true,
+          "issues": [],
+          "reset_aliases": [
+            {
+              "index": 217,
+              "ticks": 447211850801,
+              "kind": "PMGR_ALIAS",
+              "result": 0,
+              "a": 22,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            },
+            {
+              "index": 218,
+              "ticks": 447226721129,
+              "kind": "PMGR_ALIAS",
+              "result": -1,
+              "a": 23,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            }
+          ]
+        },
+        "payload_readback_unchanged": true,
+        "ans_cpu_control": 0,
+        "ans_boot_status": 0,
+        "kboot_return": 0,
+        "finished_at": "2026-10-12T12:55:41.460303-06:00"
+      },
+      "linux": {
+        "cell": "L1",
+        "linux_result": "FAIL",
+        "report_source": "Manual transcription checked against final Logitech C920 webcam frame",
+        "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C9-L-PREP-20261012/L1-RUN/status-final.jpg",
+        "frame_sha256": "d67f562c23c587c807d45ce7ba14b234ed9da0e36943635939f4d6ee49d77010",
+        "camera_model": "Logitech HD Pro Webcam C920",
+        "camera_usb_id": "046d:08e5",
+        "camera_startup_frames_discarded": 60,
+        "boot_id_prefix": "4e688ed5",
+        "matched_direct_reads": 0,
+        "read_total": 5,
+        "namespace_present": false,
+        "ans_branch": 2,
+        "ans_crash": true,
+        "reset_error": -62,
+        "phase": "NO NAMESPACE",
+        "error": "NO NVME",
+        "payload_readback_unchanged": true,
+        "m1n1_storage_cycle": true,
+        "m1n1_reads_matched": 5,
+        "ans_before_handoff": {
+          "cpu_control": "0x0",
+          "boot_status": "0x0"
+        },
+        "linux_log_exported": false,
+        "disk_write_commands": 0
+      },
+      "payload_hashes": {
+        "kernel": "709dd665ec9bde88e5959e22660a33bed70932c244647095d76ba93a37da580f",
+        "initramfs": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+        "prepared-dtb": "c625297716f51c5e534a7be187bc8391e26a647210605230a1ab7595c3064a4d"
+      },
+      "evidence_sha256": {
+        "evidence-analysis.json": "b5362851e82651f681cf3f6bcaf06cc9aab5672d3ad7892abbd576521c83c814",
+        "host-result.json": "7d21e8cd9469d63d3df26b54a0ec6559c0a8f0cc29a6eea4881513ec812e5dac",
+        "linux-result.json": "5ebdc271299cfeee1ad0fba3ce714467020634ce1b8232d6fdc8bbc1c61e0aab",
+        "manifest.json": "c7642956f1de81e770cabb8811756e278fc66cbbf2a33baad00a2a3bac844484",
+        "payload-hashes-after-cycle.json": "faa7ce86b45f5aa3869590bf80ad80cf0490b7144751bf35efccec291adadbf2",
+        "payload-hashes-before-cycle.json": "faa7ce86b45f5aa3869590bf80ad80cf0490b7144751bf35efccec291adadbf2",
+        "phase.txt": "350ea4f43158f92a89351033c454774a5cea93c7f2df10c3f495c0d5fdd35340",
+        "pre-handoff.json": "1f798da4f96ee403b114d2ee5fe144618fc4d3c7a7dee86baa1799413a5ff415",
+        "prepared.dtb": "c625297716f51c5e534a7be187bc8391e26a647210605230a1ab7595c3064a4d",
+        "status-final.jpg": "d67f562c23c587c807d45ce7ba14b234ed9da0e36943635939f4d6ee49d77010",
+        "status-initial.jpg": "8bb84b4ad4c19c1c327cc4bbf86312b816967b6abb35ee2b3f59a6298bd3b62e",
+        "status-settled.jpg": "9402a61715c3a2da2d08f1ec9765340f5f62296166bc98b4bf28f7b8a7ee6d07",
+        "trace-nvme-init.bin": "5d1a021146b3c11b4dd1b943534f5e2b5426b4b8d1d7c57491b04785c2b2e44b",
+        "trace-nvme-init.json": "bbc3afdc6ef4a5c7a43e595a7a1b543bb4b850923de1e0c6e298f48ec2c1c37c",
+        "trace-nvme-shutdown.bin": "bc706d872f13186f555e35a42a8b91cd1395efab106e5a6aa11c7be484ebe8bf",
+        "trace-nvme-shutdown.json": "e63c3642d4701ba0c86b7df919634312ebe3ecb51fa2161b9963daba5dc6ef44",
+        "trace-preflight.bin": "ae22140fd160989c8a2a40fe58e8ff7babd9b8f4cbfdd9139c9a15e6582c599c",
+        "trace-preflight.json": "948d11a79a9bf759ae56974f809c2957c8974d6330bcc613a16f693d02c42b1d"
+      },
+      "analysis": {
+        "cell": "L1",
+        "trace_events": 223,
+        "sart_snapshots": 10,
+        "event_dropped": 0,
+        "snapshot_dropped": 0,
+        "init_count": 1,
+        "shutdown_count": 1,
+        "m1n1_crashes": 0,
+        "shutdown": {
+          "pass": true,
+          "issues": [],
+          "reset_aliases": [
+            {
+              "index": 217,
+              "ticks": 447211850801,
+              "kind": "PMGR_ALIAS",
+              "result": 0,
+              "a": 22,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            },
+            {
+              "index": 218,
+              "ticks": 447226721129,
+              "kind": "PMGR_ALIAS",
+              "result": -1,
+              "a": 23,
+              "b": 0,
+              "c": 0,
+              "d": 0
+            }
+          ]
+        },
+        "sart_protected_mask": "0x5f",
+        "protected_slots": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          6
+        ],
+        "sart_unchanged_across_sleep_and_resolved_reset": true,
+        "sart_protected_entries_preserved_through_release": true,
+        "sart_removed_by_release": [
+          5,
+          7,
+          8
+        ],
+        "unresolved_ans2_snapshot": {
+          "phase": 23,
+          "status": 2,
+          "interpretation": "MMIO skipped, zero slot records are not measurements"
+        },
+        "payload_hashes": {
+          "kernel": "709dd665ec9bde88e5959e22660a33bed70932c244647095d76ba93a37da580f",
+          "initramfs": "9202d830a7765987a6a09cf5fadfeb749f3dc97feb23238e87e6550d04cda32e",
+          "prepared-dtb": "c625297716f51c5e534a7be187bc8391e26a647210605230a1ab7595c3064a4d"
+        },
+        "payload_unchanged": true,
+        "prepared_regions": {
+          "kernel": {
+            "address": "0x1000fe00000",
+            "bytes": 10686976
+          },
+          "initramfs": {
+            "address": "0x1000fc30000",
+            "bytes": 858052
+          },
+          "prepared-dtb": {
+            "address": "0x10007944000",
+            "bytes": 37060
+          }
+        },
+        "rtkit_buffers": [
+          {
+            "address": "0x10007988000",
+            "bytes": 32768
+          },
+          {
+            "address": "0x10007994000",
+            "bytes": 16384
+          },
+          {
+            "address": "0x1000799c000",
+            "bytes": 16384
+          }
+        ],
+        "fresh_ans_manifest_matches_L0": true
+      }
+    }
+  },
+  "conclusion": "L0 PASS / L1 FAIL reproduces Linux cold ANS crash after one proven m1n1 read/shutdown cycle without FAT loading or stage2 relocation. The specific cause remains unproven.",
+  "linux_result_source": "Fixed framebuffer panels captured through bounded camera stills; no raw Linux log exported.",
+  "disk_write_commands": 0,
+  "installed_bootloader_changed": false,
+  "input_manifest_reporting_note": "The original preparation manifest mentions Nikon stills; L1 used the owner-connected C920 instead. The original manifest is preserved and boot component hashes match."
+}
