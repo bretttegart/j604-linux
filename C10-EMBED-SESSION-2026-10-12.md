@@ -136,3 +136,34 @@ This changes LabOS's boot object. It does not repartition, format or install
 a root filesystem. Updating this embedded kernel/init requires another
 Recovery configure-boot operation. ANS sleep/restart, sustained storage
 validation, a persistent root and broader laptop support remain separate work.
+
+
+## Installed boot failure and recovery
+
+After receiving the native checksum helper, the operator reports that the
+installed boot loops at the Apple logo and never presents a shell or visible
+m1n1/Linux text. This is an installed-boot failure, separate from the successful
+RAM proxy tests. No boot-time exception or ANS crash was captured, so neither
+ANS nor a particular early startup instruction can be identified as its cause.
+The operator has successfully returned to paired macOS Recovery.
+
+The earlier bare fallback also uses the C9 diagnostic binary, which was proven
+through RAM chainload but not independently as an installed boot object. For
+recovery, a separate package instead uses preserved `m1n1-pre-ctrr.bin`, SHA-256
+`dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd`, 3866624 bytes.
+It is byte-identical to the surviving Oct 3 `m1n1-upstream/build/m1n1.bin`.
+Its `v2.0.0-dirty` version and `0x3b0000` payload boundary agree with the
+previous installed proxy's logs. It has not been byte-compared against the
+previous installed boot object, so exact restoration is not yet established.
+
+Package: `C10-EMBED-20261012/serve/proxy-restore.tar.gz`, SHA-256
+`137da5f42fe80c8d1a1df4d4df3c59139a3b9eafc966e2be865b69422fb24951`.
+The package contains the native checksum helper and a standalone restoration
+script with the same LabOS System UUID guard and raw entry-point settings.
+The script passes bash syntax validation. Mocked Recovery checks confirm the
+exact raw configure-boot arguments on the correct volume, and no configure-boot
+call on a wrong image hash or wrong volume UUID. The served archive matches the
+host archive byte-for-byte. Operator restoration result is pending.
+
+Next isolate installed m1n1 startup from Linux payload boot. Proxy success
+alone does not establish that an image works as an installed boot object.
