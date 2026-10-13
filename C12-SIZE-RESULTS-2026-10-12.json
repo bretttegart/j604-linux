@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-12",
+  "experiment": "C12 preserved proxy padded to failed C11 image size",
+  "status": "FAIL_INSTALLED_OPERATOR_REPORTED_BOOTLOOP",
+  "operator_report": "Bootloop again",
+  "manifest_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C12-SIZE-20261012/manifest.json",
+  "image": {
+    "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C12-SIZE-20261012/padded-proxy.bin",
+    "sha256": "d7fa57f0ae498ced7e6b56df20c24d1bab5c433c4eb41ebfa5ea23dc11354ee6",
+    "bytes": 8140659
+  },
+  "working_proxy": {
+    "path": "/home/btega/j604-boot/m1n1-pre-ctrr.bin",
+    "sha256": "dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd",
+    "bytes": 3866624
+  },
+  "padding": {
+    "offset": 3866624,
+    "bytes": 4274035,
+    "zero_bytes": 4273971,
+    "end_marker_hex": "4a363034204331322053495a4520434f4e54524f4c3a207072657365727665642070726f78793b20756e657865637574656420656e64206d61726b65722e0a00",
+    "marker_offset": 8140595
+  },
+  "controls": "Executable prefix byte-identical to restored installed proxy. Original payload scanner immediately stops on zero word. Only zero padding plus a 64-byte unexecuted end marker appended; no Linux payload or diagnostic code. End marker permits verifying actual large image load.",
+  "package": {
+    "path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c12-size.tar.gz",
+    "sha256": "b3d8231e0c6daeb3f9d5aa76f355d984529b4531a092c4bfdae7c174e6a378dc",
+    "target_system_uuid": "46727C64-DC7F-4B50-844E-5E3CC41A2C02",
+    "raw_entry_offset": 2048,
+    "lowest_virtual_address": 0
+  },
+  "validation": {
+    "host_prefix_padding_marker_and_size": "PASS",
+    "archive_entry_checksums": "PASS",
+    "served_archive_matches_host": "PASS",
+    "installer_bash_syntax": "PASS",
+    "mocked_padded_and_proxy_modes": "PASS",
+    "mocked_wrong_hash_and_volume_rejected": "PASS",
+    "inspector_python_syntax": "PASS",
+    "installed_padding_or_marker_readback": "NOT_OBTAINED",
+    "inspector_hardware_execution": "NOT_RUN"
+  },
+  "interpretation": "Larger installed-image/loading/layout change reproduces bootloop with the known executable prefix and no Linux payload. Exact failure stage, size threshold and firmware cause remain unestablished.",
+  "stopping_state": {
+    "user_requested_stop": true,
+    "last_installed_labos_image": "C12 padded proxy",
+    "working_smaller_proxy_restored_after_c12": false,
+    "further_hardware_tests": "NONE",
+    "recovery_instructions": "C12-SIZE-SESSION-2026-10-12.md"
+  }
+}

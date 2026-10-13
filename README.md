@@ -13,15 +13,19 @@ unknown; these version facts do not establish an incompatible combination
 or a cause of the ANS crash. See the firmware provenance record below.
 > **Start here (Oct 12):** [C9 review](C9-REVIEW-2026-10-12.md) contains
 > the verified source comparison, restart matrix and SART capture protocol.
-> **Latest:** [C10 embedded boot and shell](C10-EMBED-SESSION-2026-10-12.md)
-> passes through the proxy: warm NVMe, five matching direct reads,
-> working keyboard and interactive read-only shell. The exact final image
-> was installed on LabOS but the operator reports an Apple-logo bootloop
-> without visible m1n1/Linux output. The preserved standalone proxy is
-> restored and responds over USB. [C11 pre-payload pause](C11-PAUSE-SESSION-2026-10-12.md)
-> reaches the shell through USB; all appended bytes match, four historical
-> block hashes match and the changed boot-log block repeats consistently.
-> Its installed pause test is prepared.
+> **Session stopped (Oct 12):** [current status and recovery](SESSION-STATUS-2026-10-12.md).
+> [C12 size control](C12-SIZE-SESSION-2026-10-12.md) bootloops with the exact
+> working proxy executable padded from 3,866,624 to 8,140,659 bytes. This
+> reproduces the installed-boot failure without Linux or diagnostic code;
+> the loading/layout cause and any size threshold remain unknown.
+> **LabOS still has the failing C12 image; restoration after C12 is pending.**
+> [C10 embedded shell](C10-EMBED-SESSION-2026-10-12.md) works through the USB
+> proxy (keyboard and initial 5/5 direct reads) but its installed image loops.
+> The smaller preserved proxy was successfully restored before C11/C12.
+> [C11 pre-payload pause](C11-PAUSE-SESSION-2026-10-12.md) reaches a verified
+> hold and shell through USB; its installed image also loops before any
+> reported m1n1/C11 text. Four old block hashes match. The old fifth-block
+> reference contains Boot Picker logs; the changed current hash repeats consistently.
 > [E5 live handoff](C9-E5-SESSION-2026-10-12.md) reproduces
 > the Linux sleep crash after a proven m1n1 restart, keeping ANS running
 > and reserving all nine retained allocations. Linux still renegotiates
@@ -82,7 +86,7 @@ or a cause of the ANS crash. See the firmware provenance record below.
 | Built-in keyboard (MTP dockchannel → hid-apple) | ✅ working, keys reach the VT console |
 | Tethered boot to userspace | ✅ working (initramfs) |
 | NVMe (apple,t8132-nvme-ans2) | ✅ working tethered — enumerate + GPT + block read proven (see below) |
-| Untethered boot | ❌ kernel cold-boot of the ANS firmware crashes the IOP — see below |
+| Untethered boot | ❌ ANS cold restart remains unresolved; larger embedded installed images also bootloop before observed m1n1/Linux output (C10–C12) |
 | Rootfs on disk | ⏳ 998 MB ESP + 60 GB Linux-root partition reported; ESP file loading proven, Linux root not yet installed; verify current layout before deployment |
 
 Boot methods: tethered (a patched m1n1 is chainloaded raw,

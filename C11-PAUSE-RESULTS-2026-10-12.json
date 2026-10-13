@@ -45,10 +45,13 @@
     "frame_sha256": "8cb52a63fe39c26146b6a165b81bd8ad95d930e7fda3af587cd04c3f1d355649"
   },
   "installed": {
-    "status": "PACKAGE_READY_AWAITING_OPERATOR_INSTALL",
+    "status": "FAIL_OPERATOR_REPORTED_BOOTLOOP_NO_M1N1_TEXT",
     "package": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c11-pause.tar.gz",
     "package_sha256": "d267bedc0b529a48d4b1830c3339d1f890b824a2e07608f1add58e3fcabb01d6",
-    "known_working_proxy_sha256": "dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd"
+    "known_working_proxy_sha256": "dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd",
+    "operator_report": "Rebooted: bootloop again. Recovery ready; no other text.",
+    "usb_checkpoint_reached": false,
+    "limit": "No m1n1/C11 text reported and no proxy present at host check; precise failure point unestablished."
   },
   "limits": "Pause initializes USB before payload scanning, changes memory allocations and requires a host resume. This is a boot diagnostic, not untethered success. Stable repeat reads do not establish broad storage reliability."
 }

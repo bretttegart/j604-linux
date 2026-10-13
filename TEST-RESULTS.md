@@ -299,3 +299,23 @@ One proposed next action and its reason:
 
 #### Operator note 2026-10-07 ~16:15 MDT
 Corrections in the header above accepted. Next: exact TETHER-A control repeat, then SHUT-AUDIT (instrumented stage1, stage2 A unchanged) per FOLLOWUP-2026-10-07. Separately, a display-only init v2 (block-letter webcam verdict carousel, test logic unchanged, initramfs 80365a9c..) was verified readable from the sunki webcam on its own tethered run (TETHER-V2, carousel showed NVME OK); init v3 repairs (capacity, ANSCHK field retention, full-read checks) will be separately named before use in any comparison.
+
+
+### Oct 12 stopping checkpoint — E5, C10, C11, C12
+
+See [session status](SESSION-STATUS-2026-10-12.md) for the current Mac state
+and recovery route. E5's retained handoff reproduces Linux's ANS sleep crash;
+[C10](C10-EMBED-SESSION-2026-10-12.md) and
+[C11](C11-PAUSE-SESSION-2026-10-12.md) reach the interactive Linux shell through
+RAM proxy loading but bootloop when installed. The preserved smaller proxy
+restores successfully. [C12](C12-SIZE-SESSION-2026-10-12.md) appends padding
+and an ignored end marker to that exact working executable, matching the
+8,140,659-byte installed image length: operator reports another bootloop.
+This reproduces a separate installed-image loading/layout blocker without
+Linux; no firmware fault, size threshold or ANS cause is established.
+
+C11's shell reads match four historical references. LBA 4096 contains old
+Boot Picker log text in iBootSystemContainer, and the operator confirms three
+identical new O_DIRECT hashes. Historical comparison remains 4/5, not a new
+5/5 PASS. The last installed LabOS image is failing C12; restoration after
+that test has not occurred. Work stopped at the user's request.

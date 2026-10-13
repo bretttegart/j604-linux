@@ -70,7 +70,7 @@ were not captured byte-for-byte; an exact new reference hash is not adopted.
 Record shell PASS and stable repeated reads, with historical comparison 4/5.
 Do not recast the original 5/5 checker result as a current 5/5 PASS.
 
-## Installed test prepared
+## Installed test — failed
 
 Package served at `http://192.168.0.11:8765/c11-pause.tar.gz`, SHA-256
 `d267bedc0b529a48d4b1830c3339d1f890b824a2e07608f1add58e3fcabb01d6`.
@@ -92,7 +92,10 @@ bash /tmp/c11-pause/install.sh install /Volumes/LabOS
 ```
 
 Shut down, keep USB-C connected, hold Power and choose LabOS. Expected:
-`C11 PRE-PAYLOAD HOLD`. Installed result is pending. If it reaches the hold,
+`C11 PRE-PAYLOAD HOLD`. The operator instead reports another bootloop with
+no other text. No `/dev/m1n1` is present at the host check. The hold is not
+observed; the exact failure point is unestablished. The operator has returned
+to paired Recovery. If a future diagnostic reaches the hold,
 inspect the complete image before resuming. If it loops before the hold, the
 failure is before payload scanning in this diagnostic; it does not identify
 an exact instruction or establish an ANS fault.
@@ -100,3 +103,14 @@ an exact instruction or establish an ANS fault.
 Recovery uses the same archive with
 `bash /tmp/c11-pause/install.sh proxy /Volumes/LabOS`; download/extract again
 if Recovery has cleared `/tmp`.
+
+
+## Next comparison: C12 preserved proxy at the same file size
+
+[C12 size control](C12-SIZE-SESSION-2026-10-12.md) keeps the exact working
+standalone proxy executable prefix and appends zero padding plus an ignored
+end marker to reach C11's file size. This isolates larger installed-image
+size from the C9/C11 prefix and embedded Linux data. The operator reports that C12 also bootloops. The larger installed-image
+size/loading/layout change reproduces failure with the known executable
+prefix and no Linux payload. An exact firmware defect or size threshold
+is not identified. Work stopped at the user’s request after C12.
