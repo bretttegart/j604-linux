@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-12",
+  "experiment": "C11 pre-payload pause",
+  "manifest": "/home/btega/j604-boot/ans-review-n6miVhGq/C11-PAUSE-20261012/manifest.json",
+  "proxy_hold": {
+    "started_at": "2026-10-12T18:53:22.531282-06:00",
+    "resumed": false,
+    "status": "HOLD_VERIFIED",
+    "base": "0x10004730000",
+    "phase": "0x43313101",
+    "payload_start": "0x10004af0000",
+    "payload_end": "0x10004ef3773",
+    "payload_sha256": "e4290ea8424bdacc3fb615d8469d43bdeaf850e180d04ff89d77d145a4c5f2ba",
+    "payload_match": true,
+    "top_of_kernel_data": "0x100051ac000",
+    "image_end_below_top_of_kernel_data": true,
+    "vectors_match": true,
+    "phase_after_read": "0x43313101"
+  },
+  "proxy_resume": {
+    "started_at": "2026-10-12T18:53:46.952868-06:00",
+    "resumed": true,
+    "status": "RESUMED_LINUX_RESULT_REQUIRES_SCREEN_OR_OPERATOR",
+    "base": "0x10004730000",
+    "phase": "0x43313101",
+    "payload_start": "0x10004af0000",
+    "payload_end": "0x10004ef3773",
+    "payload_sha256": "e4290ea8424bdacc3fb615d8469d43bdeaf850e180d04ff89d77d145a4c5f2ba",
+    "payload_match": true,
+    "top_of_kernel_data": "0x100051ac000",
+    "image_end_below_top_of_kernel_data": true,
+    "vectors_match": true,
+    "phase_after_read": "0x43313101",
+    "post_resume_transport_end": "SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')",
+    "post_resume_log_sha256": "dadf26906f9a3f79739fa9067150f57f58efd1688856b82d779223a894829fe8"
+  },
+  "shell": {
+    "status": "PASS_OPERATOR_AND_CAMERA",
+    "operator_report": "Shell present; hash mismatch LBA 4096",
+    "historical_direct_read_matches": 4,
+    "historical_direct_read_total": 5,
+    "lba_4096_three_repeat_hashes": "IDENTICAL_OPERATOR_CONFIRMED",
+    "reference_limit": "Historical LBA4096 bytes contain dated Boot Picker logs within GPT iBootSystemContainer partition; mutable reference across Recovery sessions. Actual current block contents not captured byte-for-byte.",
+    "frame": "/home/btega/j604-boot/ans-review-n6miVhGq/C11-PAUSE-20261012/proxy-test/shell-result.jpg",
+    "frame_sha256": "8cb52a63fe39c26146b6a165b81bd8ad95d930e7fda3af587cd04c3f1d355649"
+  },
+  "installed": {
+    "status": "PACKAGE_READY_AWAITING_OPERATOR_INSTALL",
+    "package": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/serve/c11-pause.tar.gz",
+    "package_sha256": "d267bedc0b529a48d4b1830c3339d1f890b824a2e07608f1add58e3fcabb01d6",
+    "known_working_proxy_sha256": "dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd"
+  },
+  "limits": "Pause initializes USB before payload scanning, changes memory allocations and requires a host resume. This is a boot diagnostic, not untethered success. Stable repeat reads do not establish broad storage reliability."
+}

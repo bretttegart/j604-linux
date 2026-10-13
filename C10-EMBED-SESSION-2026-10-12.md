@@ -126,11 +126,11 @@ the host against the complete payload; the Mach-O architecture and code
 signature were inspected. Go build: CGO_ENABLED=0, GOOS=darwin,
 GOARCH=arm64, `-trimpath -ldflags='-s -w'`.
 
-After successful installation, shut down, disconnect the proxy tether,
-select LabOS and run `ans-check`. Repeat on a fresh boot before claiming
-reproducible untethered operation. If needed, use the same package in
-paired Recovery with `install.sh proxy /Volumes/LabOS` to install the
-bare proxy fallback.
+The installation instructions originally asked for a disconnected boot and
+`ans-check`. That installed boot failed as recorded below. Use the separate
+`proxy-restore` package for recovery; it contains the preserved proxy that has
+now booted successfully. The original C10 package's C9 diagnostic fallback
+was only proven through RAM chainload, not as an installed boot object.
 
 This changes LabOS's boot object. It does not repartition, format or install
 a root filesystem. Updating this embedded kernel/init requires another
@@ -163,7 +163,14 @@ script with the same LabOS System UUID guard and raw entry-point settings.
 The script passes bash syntax validation. Mocked Recovery checks confirm the
 exact raw configure-boot arguments on the correct volume, and no configure-boot
 call on a wrong image hash or wrong volume UUID. The served archive matches the
-host archive byte-for-byte. Operator restoration result is pending.
+host archive byte-for-byte. The operator subsequently reports “proxy up”;
+a read-only USB capture confirms `v2.0.0-dirty` and `Running proxy`, saves
+bootargs and the full ADT (SHA-256 `a065d3a72c2d1795e68fa5468313710592bc6ce27a7916c6676fc3763e71f859`),
+and leaves the proxy available. Capture directory: `restored-proxy-adt`;
+startup log: `restored-proxy-capture.log`. Restoration PASS.
 
 Next isolate installed m1n1 startup from Linux payload boot. Proxy success
 alone does not establish that an image works as an installed boot object.
+
+The next diagnostic is [C11 pre-payload pause](C11-PAUSE-SESSION-2026-10-12.md),
+which verifies the appended image in RAM before a host-controlled resume.

@@ -1,0 +1,35 @@
+--- a/src/main.c
++++ b/src/main.c
+@@ -33,6 +33,9 @@
+ 
+ struct vector_args next_stage;
+ 
++/* C11: observable pause before the embedded payload scanner. */
++volatile u64 c11_boot_phase = 0x43313100;
++
+ const char version_tag[] = "##m1n1_ver##" BUILD_TAG;
+ const char *const m1n1_version = version_tag + 12;
+ 
+@@ -117,9 +120,22 @@
+ #endif
+ #endif
+ 
++    c11_boot_phase = 0x43313101;
++    if (!usb_up) {
++        usb_init();
++        usb_iodev_init();
++        usb_up = true;
++    }
++    fb_set_active(true);
++    printf("C11 PRE-PAYLOAD HOLD: USB proxy ready; host exit resumes Linux.\n");
++    uartproxy_run(NULL);
++    c11_boot_phase = 0x43313102;
++    printf("C11 RESUME: entering unchanged embedded payload scanner.\n");
++
+     printf("Checking for payloads...\n");
+ 
+     if (payload_run() == 0) {
++        c11_boot_phase = 0x43313103;
+         printf("Valid payload found\n");
+         return;
+     }

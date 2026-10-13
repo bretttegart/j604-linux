@@ -68,11 +68,14 @@
     "recovery_checksum_tools": "Operator reports neither shasum nor openssl available. Native Go ARM64 macOS helper supplied; source tested against host sha256.",
     "evidence": "Operator report: bootloop, Apple logo only, no shell or visible m1n1/Linux text. Recovery reached. Webcam capture did not provide readable boot diagnostics.",
     "proxy_restoration": {
-      "status": "PREPARED_AWAITING_OPERATOR_RESULT",
+      "status": "PASS_OPERATOR_AND_USB_PROXY_CAPTURE",
       "image_sha256": "dfdb3bfa56e7f5266f0e4c3c1fa27a61c03d2ec921e7771ae1aabaf7dce23dfd",
       "package_sha256": "137da5f42fe80c8d1a1df4d4df3c59139a3b9eafc966e2be865b69422fb24951",
       "image_path": "/home/btega/j604-boot/m1n1-pre-ctrr.bin",
-      "provenance": "Byte-identical to surviving Oct 3 m1n1-upstream binary, version and payload boundary match earlier installed proxy logs; no byte comparison against prior installed boot object."
+      "provenance": "Byte-identical to surviving Oct 3 m1n1-upstream binary, version and payload boundary match earlier installed proxy logs; no byte comparison against prior installed boot object.",
+      "operator_report": "proxy up",
+      "capture_path": "/home/btega/j604-boot/ans-review-n6miVhGq/C10-EMBED-20261012/restored-proxy-adt",
+      "adt_sha256": "a065d3a72c2d1795e68fa5468313710592bc6ce27a7916c6676fc3763e71f859"
     }
   }
 }

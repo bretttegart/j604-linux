@@ -56,11 +56,16 @@ echo 'Boot configuration completed. Shut down, hold Power, then choose LabOS.'
 '''
 
 
-def prepare(manifest_path, output, checksum_helper=None):
+def prepare(manifest_path, output, checksum_helper=None, proxy_fallback=None):
     manifest = json.loads(manifest_path.read_text())
+    if proxy_fallback:
+        raw = proxy_fallback.read_bytes()
+        manifest['proxy_fallback'] = {
+            'path': str(proxy_fallback), 'sha256': hashlib.sha256(raw).hexdigest(),
+            'bytes': len(raw)}
     inputs = {
         "linux-shell.bin": manifest["combined"],
-        "proxy-fallback.bin": manifest["m1n1"],
+        "proxy-fallback.bin": manifest.get('proxy_fallback', manifest["m1n1"]),
     }
     for name, record in inputs.items():
         raw = Path(record["path"]).read_bytes()
@@ -79,7 +84,7 @@ def prepare(manifest_path, output, checksum_helper=None):
         shutil.copyfile(checksum_helper, output / "c10-sha256")
         (output / "c10-sha256").chmod(0o755)
     installer = INSTALLER.replace("@LINUX_SHA@", manifest["combined"]["sha256"]).replace(
-        "@PROXY_SHA@", manifest["m1n1"]["sha256"])
+        "@PROXY_SHA@", inputs["proxy-fallback.bin"]["sha256"])
     (output / "install.sh").write_text(installer)
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     checksums = "".join(f"{hashlib.sha256(path.read_bytes()).hexdigest()}  {path.name}\n"
@@ -93,5 +98,8 @@ if __name__ == "__main__":
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--checksum-helper", type=Path)
+    parser.add_argument("--proxy-fallback", type=Path,
+                        help="Use a separately proven installed proxy as the recovery image")
     args = parser.parse_args()
-    prepare(args.manifest.resolve(), args.output.resolve(), args.checksum_helper)
+    prepare(args.manifest.resolve(), args.output.resolve(), args.checksum_helper,
+            args.proxy_fallback.resolve() if args.proxy_fallback else None)

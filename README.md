@@ -17,7 +17,11 @@ or a cause of the ANS crash. See the firmware provenance record below.
 > passes through the proxy: warm NVMe, five matching direct reads,
 > working keyboard and interactive read-only shell. The exact final image
 > was installed on LabOS but the operator reports an Apple-logo bootloop
-> without visible m1n1/Linux output; proxy recovery is in progress.
+> without visible m1n1/Linux output. The preserved standalone proxy is
+> restored and responds over USB. [C11 pre-payload pause](C11-PAUSE-SESSION-2026-10-12.md)
+> reaches the shell through USB; all appended bytes match, four historical
+> block hashes match and the changed boot-log block repeats consistently.
+> Its installed pause test is prepared.
 > [E5 live handoff](C9-E5-SESSION-2026-10-12.md) reproduces
 > the Linux sleep crash after a proven m1n1 restart, keeping ANS running
 > and reserving all nine retained allocations. Linux still renegotiates
