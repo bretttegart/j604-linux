@@ -1,0 +1,199 @@
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -874,6 +874,30 @@
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_boot);
+ 
++/*
++ * Adopt a session that a previous stage already negotiated. Sends NO
++ * management message. The power-state assignments below are internal
++ * bookkeeping ONLY: Linux did not observe these ACKs, the producer
++ * negotiated them. They exist so apple_rtkit_is_running() stops
++ * reporting a live session as dead, and so no path blocks waiting for
++ * a negotiation that already happened. See ADOPTION-2026-10-28.md,
++ * guess G4, for the completion safety note.
++ */
++int apple_rtkit_adopt_running(struct apple_rtkit *rtk)
++{
++	if (rtk->crashed)
++		return -EINVAL;
++
++	rtk->iop_power_state = APPLE_RTKIT_PWR_STATE_ON;
++	rtk->ap_power_state = APPLE_RTKIT_PWR_STATE_ON;
++	complete_all(&rtk->epmap_completion);
++	complete_all(&rtk->iop_pwr_ack_completion);
++	complete_all(&rtk->ap_pwr_ack_completion);
++	dev_info(rtk->dev, "RTKit: adopting already-running session (no INIT/HELLO/EPMAP sent)\n");
++	return 0;
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_adopt_running);
++
+ int apple_rtkit_shutdown(struct apple_rtkit *rtk)
+ {
+ 	int ret;
+--- a/include/linux/soc/apple/rtkit.h
++++ b/include/linux/soc/apple/rtkit.h
+@@ -118,6 +118,15 @@
+ int apple_rtkit_boot(struct apple_rtkit *rtk);
+ 
+ /*
++ * Adopt a co-processor session that is already running and already
++ * negotiated by a previous stage. Sends no INIT, HELLO, EPMAP, or
++ * power-state message. Returns -EINVAL if the co-processor crashed.
++ * The caller must have verified (CPU running, boot status OK) before
++ * calling; this function performs no hardware check of its own.
++ */
++int apple_rtkit_adopt_running(struct apple_rtkit *rtk);
++
++/*
+  * Tell a co-processor that is already running that the AP is on.
+  * Does not wait for the endpoint map. iBoot has already exchanged that
+  * before Linux's mailbox is listening.
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -191,6 +191,8 @@
+ 	struct apple_sart *sart;
+ 	struct apple_rtkit *rtk;
+ 	struct reset_control *reset;
++	bool adoption_offered;
++	bool adopted;
+ 
+ 	struct dma_pool *prp_page_pool;
+ 	struct dma_pool *prp_small_pool;
+@@ -1086,8 +1088,10 @@
+ 		goto out;
+ 	}
+ 
+-	/* RTKit must be shut down cleanly for the (soft)-reset to work */
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	/* An adopted session must never be shut down by a later reset:
++	 * Linux did not start it, and quiesce+sleep would destroy the
++	 * adoption result the run is trying to prove. */
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		/* reset the controller if it is enabled */
+ 		if (anv->ctrl.ctrl_config & NVME_CC_ENABLE)
+ 			apple_nvme_disable(anv, false);
+@@ -1099,6 +1103,21 @@
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 	}
+ 
++	/* Adoption gate: an offered session with a stopped CPU or a bad
++	 * boot status is a broken producer contract, not a reason to
++	 * fall through to the PMGR-reset path. Fail loudly. */
++	if (anv->adoption_offered &&
++	    (!(readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
++	       APPLE_ANS_COPROC_CPU_CONTROL_RUN) ||
++	     readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) !=
++	     APPLE_ANS_BOOT_STATUS_OK)) {
++		dev_err(anv->dev, "ADOPT-PRE-FAILED cpu=%08x bst=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS));
++		ret = -ENODEV;
++		goto out;
++	}
++
+ 	/*
+ 	 * Only do the soft-reset if the CPU is not running, which means either we
+ 	 * or the previous stage shut it down cleanly.
+@@ -1124,6 +1143,24 @@
+ 		       anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 
+ 		ret = apple_rtkit_boot(anv->rtk);
++	} else if (anv->adoption_offered && anv->hw->needs_ioq_register &&
++		   (readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
++		    APPLE_ANS_COPROC_CPU_CONTROL_RUN) &&
++		   readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) ==
++		   APPLE_ANS_BOOT_STATUS_OK) {
++		/* ADOPTION: no INIT, no HELLO/EPMAP, no power renegotiation,
++		 * no SLEEP, no PMGR reset before first I/O. The queue setup
++		 * below runs unchanged on top of the adopted session. */
++		dev_err(anv->dev, "ADOPT-PRE cpu=%08x bst=%08x sart=%04x cc=%08x csts=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS),
++			apple_sart_protected_mask(anv->sart),
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
++		ret = apple_rtkit_adopt_running(anv->rtk);
++		if (!ret)
++			anv->adopted = true;
++		dev_err(anv->dev, "ADOPT-OK ret=%d adopted=%d\n", ret, anv->adopted);
+ 	} else if (anv->hw->needs_ioq_register &&
+ 		   readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) ==
+ 		   APPLE_ANS_BOOT_STATUS_OK) {
+@@ -1239,6 +1276,14 @@
+ 		goto out;
+ 	}
+ 
++	if (anv->adopted)
++		dev_err(anv->dev, "ADOPT-POST cpu=%08x bst=%08x sart=%04x cc=%08x csts=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS),
++			apple_sart_protected_mask(anv->sart),
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
++
+ 	dev_dbg(anv->dev, "Starting admin queue");
+ 	apple_nvme_init_queue(&anv->adminq);
+ 	nvme_unquiesce_admin_queue(&anv->ctrl);
+@@ -1649,6 +1694,31 @@
+ 		apple_sart_protected_mask(anv->sart),
+ 		readl(anv->mmio_nvme + NVME_REG_CC));
+ 
++	/* Adoption offer, published by the m1n1 producer in /chosen.
++	 * Absent properties mean an ordinary (non-adoption) boot: the
++	 * existing wake/boot branches still apply. A present offer with
++	 * any controller state other than "disabled" is refused outright
++	 * -- silently falling back would make the run uninterpretable. */
++	{
++		struct device_node *chosen = of_find_node_by_path("/chosen");
++		u32 live = 0;
++		const char *state = NULL;
++		if (chosen) {
++			if (!of_property_read_u32(chosen, "j604,ans-live", &live) && live) {
++				if (of_property_read_string(chosen, "j604,ans-live-controller-state", &state) ||
++				    strcmp(state, "disabled")) {
++					dev_err(dev, "ADOPT-REFUSED live=%u state=%s\n", live, state ? state : "(missing)");
++					of_node_put(chosen);
++					ret = -ENODEV;
++					goto put_dev;
++				}
++				anv->adoption_offered = true;
++				dev_err(dev, "ADOPT-OFFERED controller-state=disabled\n");
++			}
++			of_node_put(chosen);
++		}
++	}
++
+ 	anv->reset = devm_reset_control_array_get_exclusive(anv->dev);
+ 	if (IS_ERR(anv->reset)) {
+ 		ret = dev_err_probe(dev, PTR_ERR(anv->reset),
+@@ -1804,10 +1874,14 @@
+ 
+ 	flush_delayed_work(&anv->flush_dwork);
+ 	apple_nvme_disable(anv, true);
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		apple_rtkit_shutdown(anv->rtk);
+ 
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++	} else if (anv->adopted) {
++		/* Linux did not start this session; stopping it here would
++		 * be an improvised shutdown path. Deferred, not guessed. */
++		dev_err(anv->dev, "ADOPT-SKIP-SHUTDOWN\n");
+ 	}
+ }
+ 
+@@ -1825,10 +1899,12 @@
+ 
+ 	apple_nvme_disable(anv, true);
+ 
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		ret = apple_rtkit_shutdown(anv->rtk);
+ 
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++	} else if (anv->adopted) {
++		dev_err(anv->dev, "ADOPT-SKIP-SHUTDOWN\n");
+ 	}
+ 
+ 	return ret;
