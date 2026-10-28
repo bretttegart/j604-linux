@@ -1,0 +1,228 @@
+--- a/src/nvme.h
++++ b/src/nvme.h
+@@ -7,6 +7,8 @@
+ 
+ bool nvme_init(void);
+ void nvme_shutdown(void);
++bool nvme_adopt_handoff(void);
++bool nvme_adopt_armed(void);
+ 
+ bool nvme_flush(u32 nsid);
+ bool nvme_read(u32 nsid, u64 lba, void *buffer);
+--- a/src/rtkit.h
++++ b/src/rtkit.h
+@@ -25,6 +25,7 @@
+ rtkit_dev_t *rtkit_init(const char *name, asc_dev_t *asc, dart_dev_t *dart,
+                         iova_domain_t *dart_iovad, sart_dev_t *sart, bool sram);
+ bool rtkit_quiesce(rtkit_dev_t *rtk);
++bool rtkit_is_power_on(rtkit_dev_t *rtk);
+ bool rtkit_sleep(rtkit_dev_t *rtk);
+ void rtkit_free(rtkit_dev_t *rtk);
+ 
+--- a/src/rtkit.c
++++ b/src/rtkit.c
+@@ -716,6 +716,14 @@
+     return true;
+ }
+ 
++/* Adoption gate: RUNNING means IOP and AP power are both ON. A QUIESCED
++ * session (0x10, E5's state) is NOT running and must refuse adoption. */
++bool rtkit_is_power_on(rtkit_dev_t *rtk)
++{
++    return rtk->iop_power == RTKIT_POWER_ON &&
++           rtk->ap_power == RTKIT_POWER_ON;
++}
++
+ bool rtkit_quiesce(rtkit_dev_t *rtk)
+ {
+     return rtkit_switch_power_state(rtk, RTKIT_POWER_QUIESCED);
+--- a/src/nvme.c
++++ b/src/nvme.c
+@@ -553,8 +553,53 @@
+     return ret;
+ }
+ 
++/* ADOPTION (Option A): retain a RUNNING controller-disabled session.
++ * Deletes SQ/CQ and disables the controller, exactly as E5 did, but
++ * sends NO quiesce, NO sleep, NO PMGR reset, and frees NOTHING. The
++ * prepared FDT reserves every current MAP/QUEUE allocation and publishes
++ * the /chosen adoption properties (see c9_diag_reserve_adopt).
++ */
++static bool adopt_attempted, adopt_armed;
++
++bool nvme_adopt_armed(void) { return adopt_armed; }
++
++bool nvme_adopt_handoff(void)
++{
++    if (adopt_attempted || !nvme_initialized || !nvme_asc || !nvme_rtkit)
++        return false;
++    adopt_attempted = true;
++    struct nvme_command cmd = {0};
++    cmd.opcode = NVME_ADMIN_CMD_DELETE_SQ;
++    cmd.cdw10 = 1;
++    if (!c9_delete(&cmd))
++        return false;
++    cmd.opcode = NVME_ADMIN_CMD_DELETE_CQ;
++    if (!c9_delete(&cmd) || !c9_ctrl_shutdown() || !c9_ctrl_disable())
++        return false;
++    /* Unlike E5, do NOT quiesce: adoption requires a running session.
++     * rtkit_is_power_on() is false for QUIESCED, SLEEP, and OFF alike. */
++    if (!asc_cpu_running(nvme_asc) || !rtkit_is_power_on(nvme_rtkit) ||
++        read32(nvme_base + NVME_BOOT_STATUS) != NVME_BOOT_STATUS_OK ||
++        (read32(nvme_base + NVME_CC) & NVME_CC_EN) ||
++        (read32(nvme_base + NVME_CSTS) & NVME_CSTS_RDY))
++        return false;
++    adopt_armed = true;
++    c9_diag_snapshot(31);
++    c9_diag_event(C9_ADOPT_ARM, 1, read32(nvme_base + NVME_CC),
++                  read32(nvme_base + NVME_CSTS),
++                  read32(nvme_base + NVME_BOOT_STATUS), 0);
++    return true;
++}
++
+ void nvme_shutdown(void)
+ {
++    if (adopt_armed) {
++        if (!asc_cpu_running(nvme_asc) ||
++            read32(nvme_base + NVME_BOOT_STATUS) != NVME_BOOT_STATUS_OK)
++            panic("ADOPT: retained ANS stopped before kernel handoff\n");
++        printf("ADOPT: retain running ANS, buffers and SART mappings\n");
++        return;
++    }
+     c9_diag_event(C9_SHUT_BEGIN, 0, nvme_initialized, 0, 0, 0);
+     if (!nvme_initialized) {
+         // nvme_ensure_shutdown();
+--- a/src/proxy.c
++++ b/src/proxy.c
+@@ -591,6 +591,9 @@
+         case 0xf04: /* C9 diagnostic store; no disk operations */
+             reply->retval = c9_diag_get(request->args[0], request->args[1]);
+             break;
++        case 0xf06: /* One-shot adoption handoff; no disk operations */
++            reply->retval = nvme_adopt_handoff();
++            break;
+         case P_NVME_INIT:
+             reply->retval = nvme_init();
+             break;
+--- a/src/c9diag.h
++++ b/src/c9diag.h
+@@ -9,6 +9,7 @@
+     C9_SLEEP_SWITCH, C9_CPU_STOP, C9_PMGR_ALIAS, C9_PMGR_BEFORE,
+     C9_PMGR_AFTER, C9_RX, C9_TX_BEGIN, C9_TX_END, C9_CRASH,
+     C9_MAP, C9_UNMAP, C9_QUEUE, C9_SART_TRACK,
++    C9_ADOPT_ARM = 25, C9_ADOPT_RESERVE,
+ };
+ 
+ void c9_diag_event(u32 kind, s32 result, u64 a, u64 b, u64 c, u64 d);
+@@ -18,5 +19,7 @@
+ void c9_diag_sart_track(u64 base, u32 version, u32 protected_mask);
+ void c9_diag_snapshot(u32 phase);
+ void c9_diag_skip_snapshot(u32 phase, u32 reason);
++int c9_diag_reserve_adopt(void *fdt);
++u32 c9_diag_protected_mask(void);
+ u64 c9_diag_get(u64 selector, u64 phase);
+ #endif
+--- a/src/c9diag.c
++++ b/src/c9diag.c
+@@ -3,11 +3,13 @@
+ #include "adt.h"
+ #include "c9diag.h"
+ #include "utils.h"
++#include "nvme.h"
++#include "libfdt/libfdt.h"
+ 
+ #define C9_EVENT_CAP 1024
+ #define C9_SNAPSHOT_CAP 32
+ #ifndef C9_VARIANT
+-#define C9_VARIANT "C9-LOCAL"
++#define C9_VARIANT "C9-ADOPT"
+ #endif
+ 
+ struct c9_event {
+@@ -117,6 +119,66 @@
+     snapshot->protected_mask = sart_protected;
+     snapshot->version = sart_version;
+     snapshot->status = reason ? reason : 1;
++}
++
++u32 c9_diag_protected_mask(void)
++{
++    if (store.snapshots)
++        return store.snapshot[store.snapshots - 1].protected_mask;
++    return sart_protected;
++}
++
++int c9_diag_reserve_adopt(void *fdt)
++{
++    if (!nvme_adopt_armed())
++        return 0;
++    if (store.event_dropped || store.snapshot_dropped)
++        return -1;
++    u32 begin = 0, maps = 0, queues = 0, end = store.events;
++    for (u32 i = 0; i < end; i++)
++        if (store.event[i].kind == C9_INIT_BEGIN)
++            begin = i;
++    for (u32 i = begin; i < end; i++) {
++        struct c9_event *e = &store.event[i];
++        if (e->kind != C9_MAP && e->kind != C9_QUEUE)
++            continue;
++        if (!e->a || !e->b || (e->a & 0x3fff) || e->b > 0x8000)
++            return -1;
++        if (e->kind == C9_MAP) {
++            if (e->result != 1 || e->a != e->c)
++                return -1;
++            maps++;
++        } else {
++            queues++;
++        }
++        u64 size = (e->b + 0x3fff) & ~0x3fffUL;
++        if (fdt_add_mem_rsv(fdt, e->a, size))
++            return -1;
++        c9_diag_event(C9_ADOPT_RESERVE, 1, e->a, size, e->kind, 0);
++    }
++    if (maps != 3 || queues != 6)
++        return -1;
++    /* Publish the adoption contract for the Linux consumer. The consumer
++     * refuses adoption unless controller-state is exactly "disabled".
++     * BOOT_STATUS comes from the C9_ADOPT_ARM event (its c field), not
++     * from a register read here: c9diag owns no NVMe register map. */
++    u32 boot_status = 0;
++    for (u32 i = begin; i < end; i++)
++        if (store.event[i].kind == C9_ADOPT_ARM)
++            boot_status = (u32)store.event[i].c;
++    if (!boot_status)
++        return -1;
++    int node = fdt_path_offset(fdt, "/chosen");
++    if (node < 0)
++        return -1;
++    if (fdt_setprop_u32(fdt, node, "j604,ans-live", 1) ||
++        fdt_setprop(fdt, node, "j604,ans-live-controller-state",
++                    "disabled", sizeof("disabled")) ||
++        fdt_setprop_u32(fdt, node, "j604,ans-live-boot-status", boot_status) ||
++        fdt_setprop_u32(fdt, node, "j604,ans-live-sart-mask",
++                        c9_diag_protected_mask()))
++        return -1;
++    return 0;
+ }
+ 
+ u64 c9_diag_get(u64 selector, u64 phase)
+--- a/src/kboot.c
++++ b/src/kboot.c
+@@ -4,6 +4,7 @@
+ 
+ #include "kboot.h"
+ #include "adt.h"
++#include "c9diag.h"
+ #include "assert.h"
+ #include "clk.h"
+ #include "dapf.h"
+@@ -2923,6 +2924,9 @@
+     if (dt_set_memory())
+         return -1;
+ 
++    if (c9_diag_reserve_adopt(dt))
++        bail("ADOPT: could not reserve retained ANS allocations\n");
++
+     if (fdt_pack(dt))
+         bail("FDT: fdt_pack() failed\n");
+ 
