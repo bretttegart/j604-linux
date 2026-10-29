@@ -1,0 +1,21 @@
+--- /home/btega/j604-boot/adoption-build/run-2026-10-28-lohi/apple.c.before-lohi	2026-10-28 20:58:57.964490013 -0600
++++ drivers/nvme/host/apple.c	2026-10-28 20:58:57.964991388 -0600
+@@ -1268,14 +1268,14 @@
+ 	aqa = APPLE_NVME_AQ_DEPTH - 1;
+ 	aqa |= aqa << 16;
+ 	writel(aqa, anv->mmio_nvme + NVME_REG_AQA);
+-	writeq(anv->adminq.sq_dma_addr, anv->mmio_nvme + NVME_REG_ASQ);
+-	writeq(anv->adminq.cq_dma_addr, anv->mmio_nvme + NVME_REG_ACQ);
++	lo_hi_writeq(anv->adminq.sq_dma_addr, anv->mmio_nvme + NVME_REG_ASQ);
++	lo_hi_writeq(anv->adminq.cq_dma_addr, anv->mmio_nvme + NVME_REG_ACQ);
+ 
+ 	if (anv->hw->has_lsq_nvmmu) {
+ 		/* Setup NVMMU for both queues */
+-		writeq(anv->adminq.tcb_dma_addr,
++		lo_hi_writeq(anv->adminq.tcb_dma_addr,
+ 			anv->mmio_nvmmu + APPLE_NVMMU_ASQ_TCB_BASE);
+-		writeq(anv->ioq.tcb_dma_addr,
++		lo_hi_writeq(anv->ioq.tcb_dma_addr,
+ 			anv->mmio_nvmmu + APPLE_NVMMU_IOSQ_TCB_BASE);
+ 	}
+ 

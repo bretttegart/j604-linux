@@ -1,0 +1,14 @@
+--- /home/btega/j604-boot/C9-PREP-ADOPT/m1n1-local/src/nvme.c	2026-10-28 14:43:15.065459686 -0600
++++ /home/btega/j604-boot/adoption-build/run-2026-10-28-shnfree/m1n1-shnfree/src/nvme.c	2026-10-28 21:24:52.645813398 -0600
+@@ -574,7 +574,10 @@
+     if (!c9_delete(&cmd))
+         return false;
+     cmd.opcode = NVME_ADMIN_CMD_DELETE_CQ;
+-    if (!c9_delete(&cmd) || !c9_ctrl_shutdown() || !c9_ctrl_disable())
++    /* SHN-free variant: NO c9_ctrl_shutdown() — do NOT set CC.SHN to NORMAL.
++     * Delete queues + disable only (CC.EN=0, bounded RDY-clear wait in
++     * c9_ctrl_disable), mirroring Pro l1_ans_leave(). */
++    if (!c9_delete(&cmd) || !c9_ctrl_disable())
+         return false;
+     /* Unlike E5, do NOT quiesce: adoption requires a running session.
+      * rtkit_is_power_on() is false for QUIESCED, SLEEP, and OFF alike. */
