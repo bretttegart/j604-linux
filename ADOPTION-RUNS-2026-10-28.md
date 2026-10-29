@@ -122,16 +122,25 @@ Control boot: no m1n1-adoption chainload, no 0xf06, no retained ranges,
 DTB d7091e74 with 0 ans-live strings, cmdline without j604.test=ADOPT,
 same run-6 kernel and initramfs (session mode the only variable).
 Result: Oops, same fault class — write to read-only memory, Level 3
-permission fault, ESR 0x9600004f, CPU 6, PID 1 init, kernel #33, pc
-copy_page, lr copy_user_highpage, same trace as run 6, after "Run /init
-as init process" and before any userspace code. NVMe enable outcome in
-this boot was not resolved (early lines illegible at webcam resolution)
-and does not affect the verdict.
+permission fault, ESR 0x9600004f, kernel 7.1.9-g77cb8f24c230-dirty #33,
+after "Run /init as init process" and before any userspace code. NVMe
+enable outcome in this boot was not resolved (early lines illegible at
+webcam resolution) and does not affect the verdict.
+Photo confirmation (Brett's phone photo, which supersedes the webcam
+reading of CPU 6 / copy_page): CPU 5, PID 1, Comm init, fault VA
+fffff8000046c8000, pc clear_page+0x30/0x68, trace clear_page ->
+folio_alloc -> handle_mm_fault -> do_page_fault (translation /
+mem-abort tail cut off in the frame). This is a different entry point
+from run 6's copy_page / copy_user_highpage, but the same fault class,
+during init ELF loading.
+VA comparison conclusion: the bisect VA 0046c8000 differs from run 6's
+0055f4000, run 4's 0058d8000, run 3's 0041f9c000, run 2's 005a3c000, and
+run 1's 00420c000. VAs vary across runs, so the defect is
+timing/layout-dependent, NOT a fixed mapping defect. This strengthens
+(does not change) the bisect verdict below.
 Conclusion: the shared-state explanation (adopted reservations
 corrupting later MM) is killed as necessary. The Oops is an independent
-kernel/MM defect. Exact fault VA for the bisect boot is pending Brett's
-phone photo (webcam could not resolve the trailing digits; run 6's VA
-was fffff8000055f4000).
+kernel/MM defect, and is the live track.
 
 ## Hypotheses status
 
@@ -158,3 +167,24 @@ was fffff8000055f4000).
 3. Separately, after the Oops track moves: retry the run-6 repeat to
    confirm ADOPT-POST reproducibility. Enable and Oops are now proven
    to be independent blockers.
+
+## Status as of 18:36 MDT, Oct 28, 2026
+
+- Push: commit 8be4185 was pushed by Brett from his sunki terminal at
+  18:34 MDT; branch adoption-ram is live at
+  github.com/bretttegart/j604-linux/tree/adoption-ram.
+- GitHub auth discrepancy (UNRESOLVED, neither side settled): Muse's
+  sunki session offers only sunki's local key (SHA256:6G0rx...,
+  btega@fedora, no agent) and GitHub rejects it with publickey denied,
+  while Brett's terminal push succeeded. Brett states sunki's pubkey is
+  already registered on GitHub. Distinguishing test pending, not yet
+  run: `ssh -o IdentitiesOnly=yes -T git@github.com` on sunki. This
+  note does not claim sunki's key is unregistered, nor that agent
+  forwarding caused Brett's push — both are unverified.
+- Pending decisions / state: the trivial static init test (same kernel,
+  print + halt, or the Oct 3-era initramfs) is the recommended next
+  boot, awaiting Brett's tap on the options widget (unanswered as of
+  18:36 MDT). At photo time the Mac was still in the bisect boot,
+  frozen at the Oops header; reboot to the proxy was pending Brett's
+  action, and /dev/m1n1 was still absent on sunki at this update, so
+  the Mac had not yet returned to the proxy.
