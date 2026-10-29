@@ -1,0 +1,1007 @@
+# linux-adoption-full-2026-10-28.diff
+# Base: linux-asahi, branch asahi, commit 77cb8f24c2381a8abb7272d7bbdec548d6426a8a
+# Contents: October C9 tree + adoption producer/consumer + flag flip
+#   (separate_nvmmu_region=true) + buffer serving (adopted-mode SART-allow
+#   of preset IOVA) + NVME-RB readback + NVME-TCB dump.
+# Resulting run-6 kernel: Image.gz 6c78e8b8 (see ADOPTION-RUNS-2026-10-28.md).
+# Note: working-tree snapshot, not a reviewed upstream submission.
+#   Untracked files are NOT included; this is the tracked-file git diff only.
+diff --git a/arch/arm64/boot/dts/apple/t8132-j604.dts b/arch/arm64/boot/dts/apple/t8132-j604.dts
+index c4be915cb..f2fbe42b7 100644
+--- a/arch/arm64/boot/dts/apple/t8132-j604.dts
++++ b/arch/arm64/boot/dts/apple/t8132-j604.dts
+@@ -11,6 +11,7 @@
+ 
+ #include "t8132.dtsi"
+ #include "t8132-jxxx.dtsi"
++#include <dt-bindings/gpio/gpio.h>
+ #include <dt-bindings/leds/common.h>
+ 
+ / {
+@@ -33,3 +34,53 @@ led-0 {
+ &fpwm1 {
+ 	status = "okay";
+ };
++
++&mtp {
++	status = "okay";
++};
++
++&mtp_mbox {
++	status = "okay";
++};
++
++&mtp_dart {
++	status = "okay";
++};
++
++&mtp_dockchannel {
++	status = "okay";
++};
++
++&mtp_hid {
++	apple,afe-reset-gpios = <&smc_gpio 0x1c GPIO_ACTIVE_LOW>;
++	apple,stm-reset-gpios = <&smc_gpio 0x1d GPIO_ACTIVE_LOW>;
++
++	multi-touch {
++	};
++
++	keyboard: keyboard {
++		hid-country-code = <0>;
++		apple,keyboard-layout-id = <0>;
++	};
++
++	stm {
++	};
++
++	actuator {
++	};
++
++	tp_accel {
++	};
++};
++
++&ans_mbox {
++	status = "okay";
++};
++
++&sart {
++	status = "okay";
++};
++
++&nvme {
++	status = "okay";
++};
+diff --git a/arch/arm64/boot/dts/apple/t8132-pmgr.dtsi b/arch/arm64/boot/dts/apple/t8132-pmgr.dtsi
+index 00a09687d..e919237d0 100644
+--- a/arch/arm64/boot/dts/apple/t8132-pmgr.dtsi
++++ b/arch/arm64/boot/dts/apple/t8132-pmgr.dtsi
+@@ -793,6 +793,8 @@ ps_ans: power-controller@538 {
+ 		#power-domain-cells = <0>;
+ 		#reset-cells = <0>;
+ 		label = "ans";
++		/* Powering this domain off reboots the machine. */
++		apple,always-on;
+ 	};
+ 
+ 	ps_apcie_st: power-controller@540 {
+diff --git a/arch/arm64/boot/dts/apple/t8132.dtsi b/arch/arm64/boot/dts/apple/t8132.dtsi
+index 715980b5c..0dcf49292 100644
+--- a/arch/arm64/boot/dts/apple/t8132.dtsi
++++ b/arch/arm64/boot/dts/apple/t8132.dtsi
+@@ -255,6 +255,34 @@ pinctrl_nub: pinctrl@3881f0000 {
+ 			             <AIC_IRQ 505 IRQ_TYPE_LEVEL_HIGH>;
+ 		};
+ 
++		smc_mbox: mbox@38c608000 {
++			compatible = "apple,t8132-asc-mailbox", "apple,asc-mailbox-v4";
++			reg = <0x3 0x8c608000 0x0 0x4000>;
++			interrupt-parent = <&aic>;
++			/* ADT lists these four IRQs as 562, 561, 564, 563. */
++			interrupts = <AIC_IRQ 561 IRQ_TYPE_LEVEL_HIGH>,
++			             <AIC_IRQ 562 IRQ_TYPE_LEVEL_HIGH>,
++			             <AIC_IRQ 563 IRQ_TYPE_LEVEL_HIGH>,
++			             <AIC_IRQ 564 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "send-empty", "send-not-empty",
++			                  "recv-empty", "recv-not-empty";
++			#mbox-cells = <0>;
++		};
++
++		smc: smc@38c600000 {
++			compatible = "apple,t8132-smc", "apple,t8103-smc";
++			reg = <0x3 0x8c600000 0x0 0x4000>,
++			      <0x3 0x8de00000 0x0 0x100000>;
++			reg-names = "smc", "sram";
++			mboxes = <&smc_mbox>;
++
++			smc_gpio: gpio {
++				compatible = "apple,smc-gpio";
++				gpio-controller;
++				#gpio-cells = <2>;
++			};
++		};
++
+ 		pinctrl_smc: pinctrl@38c820000 {
+ 			compatible = "apple,t8132-pinctrl", "apple,t8103-pinctrl";
+ 			reg = <0x3 0x8c820000 0x0 0x4000>;
+@@ -344,6 +372,129 @@ i2c4_pins: i2c4-pins {
+ 			};
+ 		};
+ 
++		mtp: mtp@394600000 {
++			compatible = "apple,t8132-mtp", "apple,t8132-rtk-helper-asc4",
++				     "apple,mtp", "apple,rtk-helper-asc4";
++			reg = <0x3 0x94600000 0x0 0x4000>,
++			      <0x3 0x94c00000 0x0 0x100000>;
++			reg-names = "asc", "sram";
++			mboxes = <&mtp_mbox>;
++			/* t8132 MTP uses DART stream 0. */
++			iommus = <&mtp_dart 0>;
++			#helper-cells = <0>;
++			status = "disabled";
++		};
++
++		mtp_mbox: mbox@394608000 {
++			compatible = "apple,t8132-asc-mailbox", "apple,asc-mailbox-v4";
++			reg = <0x3 0x94608000 0x0 0x4000>;
++			interrupt-parent = <&aic>;
++			/* ADT lists these four IRQs as 1114, 1113, 1116, 1115. */
++			interrupts = <AIC_IRQ 1113 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1114 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1115 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1116 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "send-empty", "send-not-empty",
++					  "recv-empty", "recv-not-empty";
++			#mbox-cells = <0>;
++			status = "disabled";
++		};
++
++		mtp_dart: iommu@394800000 {
++			compatible = "apple,t8132-dart", "apple,t8110-dart";
++			reg = <0x3 0x94800000 0x0 0x4000>;
++			interrupt-parent = <&aic>;
++			interrupts = <AIC_IRQ 1091 IRQ_TYPE_LEVEL_HIGH>;
++			#iommu-cells = <1>;
++			status = "disabled";
++		};
++
++		mtp_dockchannel: fifo@394b30000 {
++			compatible = "apple,t8132-dockchannel", "apple,dockchannel";
++			reg = <0x3 0x94b14000 0x0 0x1000>;
++			reg-names = "irq";
++			interrupt-parent = <&aic>;
++			interrupts = <AIC_IRQ 1093 IRQ_TYPE_LEVEL_HIGH>;
++
++			ranges = <0 0x3 0x94b28000 0x20000>;
++			nonposted-mmio;
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++
++			status = "disabled";
++
++			mtp_hid: input@0 {
++				compatible = "apple,dockchannel-hid";
++				reg = <0x0000 0x1000>,
++				      <0x4000 0x1000>,
++				      <0x8000 0x1000>,
++				      <0xc000 0x1000>;
++				reg-names = "rmt-config", "rmt-data", "config", "data";
++
++				iommus = <&mtp_dart 0>;
++
++				interrupt-parent = <&mtp_dockchannel>;
++				interrupts = <2 IRQ_TYPE_LEVEL_HIGH>,
++					     <3 IRQ_TYPE_LEVEL_HIGH>;
++				interrupt-names = "tx", "rx";
++
++				apple,fifo-size = <0x800>;
++				apple,helper-cpu = <&mtp>;
++			};
++		};
++
++		ans_mbox: mbox@481608000 {
++			compatible = "apple,t8132-asc-mailbox", "apple,asc-mailbox-v4";
++			reg = <0x4 0x81608000 0x0 0x4000>;
++			interrupt-parent = <&aic>;
++			/* ADT lists these four IRQs as 1004, 1003, 1006, 1005. */
++			interrupts = <AIC_IRQ 1003 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1004 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1005 IRQ_TYPE_LEVEL_HIGH>,
++				     <AIC_IRQ 1006 IRQ_TYPE_LEVEL_HIGH>;
++			interrupt-names = "send-empty", "send-not-empty",
++					  "recv-empty", "recv-not-empty";
++			#mbox-cells = <0>;
++			power-domains = <&ps_ans>;
++			status = "disabled";
++		};
++
++		sart: sart@485c50000 {
++			/* ADT compatible is sart,coastguard. sart-version is 3. */
++			compatible = "apple,t8132-sart", "apple,t6000-sart";
++			reg = <0x4 0x85c50000 0x0 0xc000>;
++			power-domains = <&ps_ans>;
++			status = "disabled";
++		};
++
++		nvme: nvme@4c5cc0000 {
++			compatible = "apple,t8132-nvme-ans2";
++			/*
++			 * ADT reg[9], the secure BAR, is 0x4c5cc0000/0x10000.
++			 * Linear SQ lives at offset 0x24908, past that ADT size,
++			 * so the NVMe mapping stays 0x60000. The NVMMU is ADT
++			 * reg[3] at 0x485cc0000/0x60000, one GiB below, and is
++			 * not an alias of the secure BAR.
++			 * nvme-interrupt-idx is 4, IRQ 1018.
++			 */
++			reg = <0x4 0xc5cc0000 0x0 0x60000>,
++			      <0x4 0x81600000 0x0 0x4000>,
++			      <0x4 0x85cc0000 0x0 0x60000>;
++			reg-names = "nvme", "ans", "nvmmu";
++			interrupt-parent = <&aic>;
++			interrupts = <AIC_IRQ 1018 IRQ_TYPE_LEVEL_HIGH>;
++			mboxes = <&ans_mbox>;
++			apple,sart = <&sart>;
++			/* ADT: ANS id 148, then APCIE_SYS_ST id 150. Not APCIE_ST. */
++			power-domains = <&ps_ans>, <&ps_apcie_sys_st>;
++			power-domain-names = "ans", "apcie0";
++			resets = <&ps_ans>;
++			status = "disabled";
++		};
++
+ 		i2c0: i2c@3ad010000 {
+ 			compatible = "apple,t8132-i2c", "apple,t8103-i2c";
+ 			reg = <0x3 0xad010000 0x0 0x4000>;
+diff --git a/arch/arm64/lib/delay.c b/arch/arm64/lib/delay.c
+index e278e060e..bd50961e5 100644
+--- a/arch/arm64/lib/delay.c
++++ b/arch/arm64/lib/delay.c
+@@ -42,7 +42,7 @@ void __delay(unsigned long cycles)
+ {
+ 	cycles_t start = __delay_cycles();
+ 
+-	if (alternative_has_cap_unlikely(ARM64_HAS_WFXT)) {
++	if (0 && alternative_has_cap_unlikely(ARM64_HAS_WFXT)) { /* T8132 HACK: wfit kills M4 */
+ 		u64 end = start + cycles;
+ 
+ 		/*
+diff --git a/drivers/irqchip/irq-apple-aic.c b/drivers/irqchip/irq-apple-aic.c
+index 4a3141d9f..9a175ab92 100644
+--- a/drivers/irqchip/irq-apple-aic.c
++++ b/drivers/irqchip/irq-apple-aic.c
+@@ -502,11 +502,11 @@ static void aic_fiq_set_mask(struct irq_data *d)
+ 	/* Only the guest timers have real mask bits, unfortunately. */
+ 	switch (aic_fiq_get_idx(d)) {
+ 	case AIC_TMR_EL02_PHYS:
+-		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, VM_TMR_FIQ_ENABLE_P, 0);
++		/* T8132 HACK */ if (0) { 		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, VM_TMR_FIQ_ENABLE_P, 0); }
+ 		isb();
+ 		break;
+ 	case AIC_TMR_EL02_VIRT:
+-		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, VM_TMR_FIQ_ENABLE_V, 0);
++		/* T8132 HACK */ if (0) { 		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, VM_TMR_FIQ_ENABLE_V, 0); }
+ 		isb();
+ 		break;
+ 	default:
+@@ -518,11 +518,11 @@ static void aic_fiq_clear_mask(struct irq_data *d)
+ {
+ 	switch (aic_fiq_get_idx(d)) {
+ 	case AIC_TMR_EL02_PHYS:
+-		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, 0, VM_TMR_FIQ_ENABLE_P);
++		/* T8132 HACK */ if (0) { 		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, 0, VM_TMR_FIQ_ENABLE_P); }
+ 		isb();
+ 		break;
+ 	case AIC_TMR_EL02_VIRT:
+-		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, 0, VM_TMR_FIQ_ENABLE_V);
++		/* T8132 HACK */ if (0) { 		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2, 0, VM_TMR_FIQ_ENABLE_V); }
+ 		isb();
+ 		break;
+ 	default:
+@@ -869,7 +869,7 @@ static int aic_init_cpu(unsigned int cpu)
+ 	sysreg_clear_set(cntv_ctl_el0, 0, ARCH_TIMER_CTRL_IT_MASK);
+ 
+ 	/* EL2-only (VHE mode) IRQ sources */
+-	if (is_kernel_in_hyp_mode()) {
++	if (0 && is_kernel_in_hyp_mode()) { /* T8132 HACK: EL2 tmr/vgic sysregs die on M4 */
+ 		/* Guest timers */
+ 		sysreg_clear_set_s(SYS_IMP_APL_VM_TMR_FIQ_ENA_EL2,
+ 				   VM_TMR_FIQ_ENABLE_V | VM_TMR_FIQ_ENABLE_P, 0);
+diff --git a/drivers/nvme/host/apple.c b/drivers/nvme/host/apple.c
+index a3343c49c..8bf5f501c 100644
+--- a/drivers/nvme/host/apple.c
++++ b/drivers/nvme/host/apple.c
+@@ -42,7 +42,11 @@
+ #define APPLE_ANS_ACQ_DB  0x1004
+ #define APPLE_ANS_IOCQ_DB 0x100c
+ 
+-#define APPLE_ANS_MAX_PEND_CMDS_CTRL 0x1210
++#define APPLE_ANS_T8132_IOQ_CMDS 0x1200
++#define APPLE_ANS_T8132_IOQ_CQES 0x1208
++#define APPLE_ANS_T8132_IOQ_SIZE 0x1210
++
++#define APPLE_ANS_T8103_MAX_PEND_CMDS_CTRL 0x1210
+ 
+ #define APPLE_ANS_BOOT_STATUS	 0x1300
+ #define APPLE_ANS_BOOT_STATUS_OK 0xde71ce55
+@@ -167,6 +171,8 @@ struct apple_nvme_iod {
+ 
+ struct apple_nvme_hw {
+ 	bool has_lsq_nvmmu;
++	bool needs_ioq_register;
++	bool separate_nvmmu_region;
+ 	u32 max_queue_depth;
+ };
+ 
+@@ -175,6 +181,7 @@ struct apple_nvme {
+ 
+ 	void __iomem *mmio_coproc;
+ 	void __iomem *mmio_nvme;
++	void __iomem *mmio_nvmmu;
+ 	const struct apple_nvme_hw *hw;
+ 
+ 	struct device **pd_dev;
+@@ -184,6 +191,8 @@ struct apple_nvme {
+ 	struct apple_sart *sart;
+ 	struct apple_rtkit *rtk;
+ 	struct reset_control *reset;
++	bool adoption_offered;
++	bool adopted;
+ 
+ 	struct dma_pool *prp_page_pool;
+ 	struct dma_pool *prp_small_pool;
+@@ -254,8 +263,22 @@ static int apple_nvme_sart_dma_setup(void *cookie,
+ 	struct apple_nvme *anv = cookie;
+ 	int ret;
+ 
+-	if (bfr->iova)
+-		return -EINVAL;
++	if (bfr->iova) {
++		/* ADOPTION run 4: inherited buffer, preset IOVA from the producer
++		 * session. SART-allow the preset range so the RTKit layer sends
++		 * the buffer reply (reply path uses iova/size only, never
++		 * dereferences bfr->buffer). Adopted mode only; the non-adopted
++		 * path still rejects a preset IOVA with -EINVAL. */
++		if (!anv->adopted)
++			return -EINVAL;
++		if (!bfr->size)
++			return -EINVAL;
++		ret = apple_sart_add_allowed_region(anv->sart, bfr->iova,
++						    bfr->size);
++		if (ret)
++			return ret;
++		return 0;
++	}
+ 	if (!bfr->size)
+ 		return -EINVAL;
+ 
+@@ -280,7 +303,10 @@ static void apple_nvme_sart_dma_destroy(void *cookie,
+ 	struct apple_nvme *anv = cookie;
+ 
+ 	apple_sart_remove_allowed_region(anv->sart, bfr->iova, bfr->size);
+-	dma_free_coherent(anv->dev, bfr->size, bfr->buffer, bfr->iova);
++	/* Inherited buffers have buffer == NULL (never allocated by Linux);
++	 * freeing a NULL buffer for a preset IOVA would be wrong. */
++	if (bfr->buffer)
++		dma_free_coherent(anv->dev, bfr->size, bfr->buffer, bfr->iova);
+ }
+ 
+ static const struct apple_rtkit_ops apple_nvme_rtkit_ops = {
+@@ -293,8 +319,8 @@ static void apple_nvmmu_inval(struct apple_nvme_queue *q, unsigned int tag)
+ {
+ 	struct apple_nvme *anv = queue_to_apple_nvme(q);
+ 
+-	writel(tag, anv->mmio_nvme + APPLE_NVMMU_TCB_INVAL);
+-	if (readl(anv->mmio_nvme + APPLE_NVMMU_TCB_STAT))
++	writel(tag, anv->mmio_nvmmu + APPLE_NVMMU_TCB_INVAL);
++	if (readl(anv->mmio_nvmmu + APPLE_NVMMU_TCB_STAT))
+ 		dev_warn_ratelimited(anv->dev,
+ 				     "NVMMU TCB invalidation failed\n");
+ }
+@@ -1079,8 +1105,10 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		goto out;
+ 	}
+ 
+-	/* RTKit must be shut down cleanly for the (soft)-reset to work */
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	/* An adopted session must never be shut down by a later reset:
++	 * Linux did not start it, and quiesce+sleep would destroy the
++	 * adoption result the run is trying to prove. */
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		/* reset the controller if it is enabled */
+ 		if (anv->ctrl.ctrl_config & NVME_CC_ENABLE)
+ 			apple_nvme_disable(anv, false);
+@@ -1092,12 +1120,29 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 	}
+ 
++	/* Adoption gate: an offered session with a stopped CPU or a bad
++	 * boot status is a broken producer contract, not a reason to
++	 * fall through to the PMGR-reset path. Fail loudly. */
++	if (anv->adoption_offered &&
++	    (!(readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
++	       APPLE_ANS_COPROC_CPU_CONTROL_RUN) ||
++	     readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) !=
++	     APPLE_ANS_BOOT_STATUS_OK)) {
++		dev_err(anv->dev, "ADOPT-PRE-FAILED cpu=%08x bst=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS));
++		ret = -ENODEV;
++		goto out;
++	}
++
+ 	/*
+ 	 * Only do the soft-reset if the CPU is not running, which means either we
+ 	 * or the previous stage shut it down cleanly.
+ 	 */
++ 	dev_err(anv->dev, "ANSCHK cpu=%08x bst=%08x run=%d\n", readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL), readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS), apple_rtkit_is_running(anv->rtk));
+ 	if (!(readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
+ 		APPLE_ANS_COPROC_CPU_CONTROL_RUN)) {
++ 		dev_err(anv->dev, "ANSBR 2\n");
+ 
+ 		ret = reset_control_assert(anv->reset);
+ 		if (ret)
+@@ -1114,6 +1159,44 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		writel(APPLE_ANS_COPROC_CPU_CONTROL_RUN,
+ 		       anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
+ 
++		ret = apple_rtkit_boot(anv->rtk);
++	} else if (anv->adoption_offered && anv->hw->needs_ioq_register &&
++		   (readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL) &
++		    APPLE_ANS_COPROC_CPU_CONTROL_RUN) &&
++		   readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) ==
++		   APPLE_ANS_BOOT_STATUS_OK) {
++		/* ADOPTION: no INIT, no HELLO/EPMAP, no power renegotiation,
++		 * no SLEEP, no PMGR reset before first I/O. The queue setup
++		 * below runs unchanged on top of the adopted session. */
++		dev_err(anv->dev, "ADOPT-PRE cpu=%08x bst=%08x sart=%04x cc=%08x csts=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS),
++			apple_sart_protected_mask(anv->sart),
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
++		ret = apple_rtkit_adopt_running(anv->rtk);
++		if (!ret)
++			anv->adopted = true;
++		dev_err(anv->dev, "ADOPT-OK ret=%d adopted=%d\n", ret, anv->adopted);
++	} else if (anv->hw->needs_ioq_register &&
++		   readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS) ==
++		   APPLE_ANS_BOOT_STATUS_OK) {
++		/*
++		 * iBoot already booted ANS. The endpoint-map messages were
++		 * sent before this mailbox was listening, so apple_rtkit_boot
++		 * waits out -ETIME. The boot path's last step, AP power ON,
++		 * was never sent.
++		 *
++		 * raw34: match Gravity's proven t8132 flow instead: use
++		 * apple_rtkit_wake(), which sends the IOP INIT message and
++		 * then runs the full boot handshake (endpoint map + IOP
++		 * power ACK + AP power ON). The endpoint map appears to be
++		 * emitted in response to INIT, not as a one-time broadcast
++		 * we missed.
++ 		dev_err(anv->dev, "ANSBR 3\n");
++		 */
++		ret = apple_rtkit_wake(anv->rtk);
++	} else if (anv->hw->needs_ioq_register) {
+ 		ret = apple_rtkit_boot(anv->rtk);
+ 	} else {
+ 		ret = apple_rtkit_wake(anv->rtk);
+@@ -1153,14 +1236,32 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 		writel(APPLE_ANS_LINEAR_SQ_EN,
+ 			anv->mmio_nvme + APPLE_ANS_LINEAR_SQ_CTRL);
+ 
+-		/* Allow as many pending command as possible for both queues */
+-		writel(anv->hw->max_queue_depth
+-			| (anv->hw->max_queue_depth << 16), anv->mmio_nvme
+-			+ APPLE_ANS_MAX_PEND_CMDS_CTRL);
++		/*
++		 * On t8103 this register is a pending-command limit. Since
++		 * t8132 the same offset is the IO queue size and is written
++		 * after the IO queue exists. A pre-enable write of that size
++		 * still left CSTS at 0.
++		 */
++		if (!anv->hw->needs_ioq_register)
++			writel(anv->hw->max_queue_depth |
++			       (anv->hw->max_queue_depth << 16),
++			       anv->mmio_nvme + APPLE_ANS_T8103_MAX_PEND_CMDS_CTRL);
+ 
+ 		/* Setup the NVMMU for the maximum admin and IO queue depth */
+ 		writel(anv->hw->max_queue_depth - 1,
+-			anv->mmio_nvme + APPLE_NVMMU_NUM_TCBS);
++			anv->mmio_nvmmu + APPLE_NVMMU_NUM_TCBS);
++	}
++
++	/*
++	 * m1n1 clears CC.EN and waits for CSTS.RDY before writing ASQ.
++	 * raw20 reached enable with CSTS=0 and -ENODEV: RDY never came
++	 * back after the queues were programmed while EN was still set.
++	 */
++	if (anv->hw->needs_ioq_register) {
++		anv->ctrl.cap = readq(anv->mmio_nvme + NVME_REG_CAP);
++		ret = nvme_disable_ctrl(&anv->ctrl, false);
++		if (ret)
++			goto out;
+ 	}
+ 
+ 	/* Setup the admin queue */
+@@ -1173,19 +1274,121 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 	if (anv->hw->has_lsq_nvmmu) {
+ 		/* Setup NVMMU for both queues */
+ 		writeq(anv->adminq.tcb_dma_addr,
+-			anv->mmio_nvme + APPLE_NVMMU_ASQ_TCB_BASE);
++			anv->mmio_nvmmu + APPLE_NVMMU_ASQ_TCB_BASE);
+ 		writeq(anv->ioq.tcb_dma_addr,
+-			anv->mmio_nvme + APPLE_NVMMU_IOSQ_TCB_BASE);
++			anv->mmio_nvmmu + APPLE_NVMMU_IOSQ_TCB_BASE);
+ 	}
+ 
+ 	anv->ctrl.sqsize =
+ 		anv->hw->max_queue_depth - 1; /* 0's based queue depth */
+ 	anv->ctrl.cap = readq(anv->mmio_nvme + NVME_REG_CAP);
+ 
++	/* RUN 5 READBACK ONLY: read-only dump immediately before enable.
++	 * No writes here. Intended values are the ones this function wrote
++	 * above: NUM_TCBS = max_queue_depth-1, AQA = (AQ_DEPTH-1)|(AQ_DEPTH-1)<<16,
++	 * ASQ/ACQ and TCB bases = the queue DMA addresses. Doorbell registers
++	 * are write registers; their readback is informational only (expected 0
++	 * pre-enable, nothing submitted yet) and is not a pass/fail criterion.
++	 */
++	if (anv->hw->has_lsq_nvmmu) {
++		dev_err(anv->dev, "NVME-RB nvmmu num_tcbs=%08x asq_tcb=%016llx iosq_tcb=%016llx tcb_stat=%08x lin_sq_ctrl=%08x\n",
++			readl(anv->mmio_nvmmu + APPLE_NVMMU_NUM_TCBS),
++			(unsigned long long)readq(anv->mmio_nvmmu + APPLE_NVMMU_ASQ_TCB_BASE),
++			(unsigned long long)readq(anv->mmio_nvmmu + APPLE_NVMMU_IOSQ_TCB_BASE),
++			readl(anv->mmio_nvmmu + APPLE_NVMMU_TCB_STAT),
++			readl(anv->mmio_nvme + APPLE_ANS_LINEAR_SQ_CTRL));
++		dev_err(anv->dev, "NVME-RB intended num_tcbs=%u asq_tcb=%pad iosq_tcb=%pad lin_sq_ctrl=1\n",
++			anv->hw->max_queue_depth - 1,
++			&anv->adminq.tcb_dma_addr,
++			&anv->ioq.tcb_dma_addr);
++	}
++	dev_err(anv->dev, "NVME-RB nvme aqa=%08x asq=%016llx acq=%016llx asq_db=%08x iosq_db=%08x cc=%08x csts=%08x\n",
++		readl(anv->mmio_nvme + NVME_REG_AQA),
++		(unsigned long long)readq(anv->mmio_nvme + NVME_REG_ASQ),
++		(unsigned long long)readq(anv->mmio_nvme + NVME_REG_ACQ),
++		readl(anv->mmio_nvme + APPLE_ANS_LINEAR_ASQ_DB),
++		readl(anv->mmio_nvme + APPLE_ANS_LINEAR_IOSQ_DB),
++		readl(anv->mmio_nvme + NVME_REG_CC),
++		readl(anv->mmio_nvme + NVME_REG_CSTS));
++	dev_err(anv->dev, "NVME-RB intended aqa=%08x asq=%pad acq=%pad asq_db=0 iosq_db=0\n",
++		aqa, &anv->adminq.sq_dma_addr, &anv->adminq.cq_dma_addr);
++	/* RUN 6 TCB-CONTENTS DUMP ONLY: read-only, immediately before enable.
++	 * Kept alongside the run-5 readback (also read-only, unchanged).
++	 * Intended pre-enable contents: TCB memory is allocated at probe
++	 * (dmam_alloc_coherent) and is only populated at command-submit time
++	 * (apple_nvme_submit_cmd_t8103) and zeroed by apple_nvme_init_queue(),
++	 * which runs AFTER enable in this path (below) -- so at this point
++	 * every entry is intended to be all-zero (fresh coherent allocation).
++	 * Any non-zero entry is a mismatch. Reading q->tcbs[] is a CPU
++	 * coherent-memory read: no MMIO, no writes to TCB memory.
++	 * NOTE: array has max_queue_depth entries (64 on t8132); NUM_TCBS=63
++	 * is depth-1, not the entry count.
++	 */
++	if (anv->hw->has_lsq_nvmmu) {
++		int qi, ti;
++		struct apple_nvme_queue *qs[2] = { &anv->adminq, &anv->ioq };
++		const char *qn[2] = { "admin", "io" };
++		for (qi = 0; qi < 2; qi++) {
++			struct apple_nvme_queue *q = qs[qi];
++			unsigned long long bsum = 0, bxor = 0;
++			int nzbytes = 0, firstnz = -1;
++			if (!q->tcbs) {
++				dev_err(anv->dev, "NVME-TCB %s tcbs=NULL tcb_dma=%pad\n", qn[qi], &q->tcb_dma_addr);
++				continue;
++			}
++			for (ti = 0; ti < anv->hw->max_queue_depth; ti++) {
++				struct apple_nvmmu_tcb *t = &q->tcbs[ti];
++				unsigned char *b = (unsigned char *)t;
++				int bi;
++				for (bi = 0; bi < (int)sizeof(*t); bi++) {
++					bsum += b[bi];
++					if (b[bi]) {
++						nzbytes++;
++						if (firstnz < 0)
++							firstnz = ti;
++					}
++				}
++				bxor ^= (unsigned long long)le64_to_cpu(t->prp1);
++				bxor ^= (unsigned long long)le64_to_cpu(t->prp2);
++				bxor ^= (unsigned long long)t->opcode;
++			}
++			dev_err(anv->dev, "NVME-TCB %s base=%pad entries=%u bytesum=%llu bytexor=%016llx nonzero_bytes=%d first_nonzero_entry=%d\n",
++				qn[qi], &q->tcb_dma_addr, anv->hw->max_queue_depth, bsum, bxor, nzbytes, firstnz);
++			for (ti = 0; ti < 4 && ti < anv->hw->max_queue_depth; ti++) {
++				struct apple_nvmmu_tcb *t = &q->tcbs[ti];
++				dev_err(anv->dev, "NVME-TCB %s [%d] opcode=%u dma_flags=%u cid=%u len=%u prp1=%016llx prp2=%016llx\n",
++					qn[qi], ti, t->opcode, t->dma_flags, t->command_id,
++					(unsigned int)le16_to_cpu(t->length),
++					(unsigned long long)le64_to_cpu(t->prp1),
++					(unsigned long long)le64_to_cpu(t->prp2));
++			}
++			if (firstnz >= 0) {
++				struct apple_nvmmu_tcb *t = &q->tcbs[firstnz];
++				dev_err(anv->dev, "NVME-TCB %s firstnz [%d] opcode=%u dma_flags=%u cid=%u len=%u prp1=%016llx prp2=%016llx\n",
++					qn[qi], firstnz, t->opcode, t->dma_flags, t->command_id,
++					(unsigned int)le16_to_cpu(t->length),
++					(unsigned long long)le64_to_cpu(t->prp1),
++					(unsigned long long)le64_to_cpu(t->prp2));
++			}
++		}
++	}
+ 	dev_dbg(anv->dev, "Enabling controller now");
+ 	ret = nvme_enable_ctrl(&anv->ctrl);
+-	if (ret)
++	if (ret) {
++		/* raw31: did the CC enable write land? (read-only) */
++		dev_err(anv->dev, "NVME-SNAP2 cc=%08x csts=%08x\n",
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
+ 		goto out;
++	}
++
++	if (anv->adopted)
++		dev_err(anv->dev, "ADOPT-POST cpu=%08x bst=%08x sart=%04x cc=%08x csts=%08x\n",
++			readl(anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL),
++			readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS),
++			apple_sart_protected_mask(anv->sart),
++			readl(anv->mmio_nvme + NVME_REG_CC),
++			readl(anv->mmio_nvme + NVME_REG_CSTS));
+ 
+ 	dev_dbg(anv->dev, "Starting admin queue");
+ 	apple_nvme_init_queue(&anv->adminq);
+@@ -1211,6 +1414,16 @@ static void apple_nvme_reset_work(struct work_struct *work)
+ 	if (ret)
+ 		goto out_remove_cq;
+ 
++	if (anv->hw->needs_ioq_register) {
++		writeq(anv->ioq.cq_dma_addr,
++			anv->mmio_nvme + APPLE_ANS_T8132_IOQ_CQES);
++		writeq(anv->ioq.sq_dma_addr,
++			anv->mmio_nvme + APPLE_ANS_T8132_IOQ_CMDS);
++		writel((anv->hw->max_queue_depth - 1)
++			| ((anv->hw->max_queue_depth - 1) << 16), anv->mmio_nvme
++			+ APPLE_ANS_T8132_IOQ_SIZE);
++	}
++
+ 	apple_nvme_init_queue(&anv->ioq);
+ 	nr_io_queues = 1;
+ 	ret = nvme_set_queue_count(&anv->ctrl, &nr_io_queues);
+@@ -1543,6 +1756,20 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+ 		ret = PTR_ERR(anv->mmio_nvme);
+ 		goto put_dev;
+ 	}
++	/*
++	 * t8132 keeps the NVMMU at ADT reg[3]. The secure BAR still holds
++	 * the NVMe registers, including the linear submission queue.
++	 */
++	if (anv->hw->separate_nvmmu_region) {
++		anv->mmio_nvmmu = devm_platform_ioremap_resource_byname(pdev,
++									"nvmmu");
++		if (IS_ERR(anv->mmio_nvmmu)) {
++			ret = PTR_ERR(anv->mmio_nvmmu);
++			goto put_dev;
++		}
++	} else {
++		anv->mmio_nvmmu = anv->mmio_nvme;
++	}
+ 
+ 	if (anv->hw->has_lsq_nvmmu) {
+ 		anv->adminq.sq_db = anv->mmio_nvme + APPLE_ANS_LINEAR_ASQ_DB;
+@@ -1563,6 +1790,41 @@ static struct apple_nvme *apple_nvme_alloc(struct platform_device *pdev)
+ 		goto put_dev;
+ 	}
+ 
++	/*
++	 * raw28/raw29: iBoot handoff, before this driver writes ANS.
++	 * Read-only. The paint init shows boot and cc.
++	 */
++	dev_err(dev, "NVME-SNAP boot=%08x csts=%08x sart=%04x cc=%08x\n",
++		readl(anv->mmio_nvme + APPLE_ANS_BOOT_STATUS),
++		readl(anv->mmio_nvme + NVME_REG_CSTS),
++		apple_sart_protected_mask(anv->sart),
++		readl(anv->mmio_nvme + NVME_REG_CC));
++
++	/* Adoption offer, published by the m1n1 producer in /chosen.
++	 * Absent properties mean an ordinary (non-adoption) boot: the
++	 * existing wake/boot branches still apply. A present offer with
++	 * any controller state other than "disabled" is refused outright
++	 * -- silently falling back would make the run uninterpretable. */
++	{
++		struct device_node *chosen = of_find_node_by_path("/chosen");
++		u32 live = 0;
++		const char *state = NULL;
++		if (chosen) {
++			if (!of_property_read_u32(chosen, "j604,ans-live", &live) && live) {
++				if (of_property_read_string(chosen, "j604,ans-live-controller-state", &state) ||
++				    strcmp(state, "disabled")) {
++					dev_err(dev, "ADOPT-REFUSED live=%u state=%s\n", live, state ? state : "(missing)");
++					of_node_put(chosen);
++					ret = -ENODEV;
++					goto put_dev;
++				}
++				anv->adoption_offered = true;
++				dev_err(dev, "ADOPT-OFFERED controller-state=disabled\n");
++			}
++			of_node_put(chosen);
++		}
++	}
++
+ 	anv->reset = devm_reset_control_array_get_exclusive(anv->dev);
+ 	if (IS_ERR(anv->reset)) {
+ 		ret = dev_err_probe(dev, PTR_ERR(anv->reset),
+@@ -1718,10 +1980,14 @@ static void apple_nvme_shutdown(struct platform_device *pdev)
+ 
+ 	flush_delayed_work(&anv->flush_dwork);
+ 	apple_nvme_disable(anv, true);
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		apple_rtkit_shutdown(anv->rtk);
+ 
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++	} else if (anv->adopted) {
++		/* Linux did not start this session; stopping it here would
++		 * be an improvised shutdown path. Deferred, not guessed. */
++		dev_err(anv->dev, "ADOPT-SKIP-SHUTDOWN\n");
+ 	}
+ }
+ 
+@@ -1739,10 +2005,12 @@ static int apple_nvme_suspend(struct device *dev)
+ 
+ 	apple_nvme_disable(anv, true);
+ 
+-	if (apple_rtkit_is_running(anv->rtk)) {
++	if (apple_rtkit_is_running(anv->rtk) && !anv->adopted) {
+ 		ret = apple_rtkit_shutdown(anv->rtk);
+ 
+ 		writel(0, anv->mmio_coproc + APPLE_ANS_COPROC_CPU_CONTROL);
++	} else if (anv->adopted) {
++		dev_err(anv->dev, "ADOPT-SKIP-SHUTDOWN\n");
+ 	}
+ 
+ 	return ret;
+@@ -1753,17 +2021,30 @@ static DEFINE_SIMPLE_DEV_PM_OPS(apple_nvme_pm_ops, apple_nvme_suspend,
+ 
+ static const struct apple_nvme_hw apple_nvme_t8015_hw = {
+ 	.has_lsq_nvmmu = false,
++	.needs_ioq_register = false,
++	.separate_nvmmu_region = false,
+ 	.max_queue_depth = 16,
+ };
+ 
+ static const struct apple_nvme_hw apple_nvme_t8103_hw = {
+ 	.has_lsq_nvmmu = true,
++	.needs_ioq_register = false,
++	.separate_nvmmu_region = false,
++	.max_queue_depth = 64,
++};
++
++static const struct apple_nvme_hw apple_nvme_t8132_hw = {
++	.has_lsq_nvmmu = true,
++	.needs_ioq_register = true,
++	/* raw27: TCB offsets go to the NVMe window, as on t8103. */
++	.separate_nvmmu_region = true,
+ 	.max_queue_depth = 64,
+ };
+ 
+ static const struct of_device_id apple_nvme_of_match[] = {
+ 	{ .compatible = "apple,t8015-nvme-ans2", .data = &apple_nvme_t8015_hw },
+ 	{ .compatible = "apple,t8103-nvme-ans2", .data = &apple_nvme_t8103_hw },
++	{ .compatible = "apple,t8132-nvme-ans2", .data = &apple_nvme_t8132_hw },
+ 	{ .compatible = "apple,nvme-ans2", .data = &apple_nvme_t8103_hw },
+ 	{},
+ };
+diff --git a/drivers/soc/apple/rtkit-internal.h b/drivers/soc/apple/rtkit-internal.h
+index c82065a8b..d97de83d9 100644
+--- a/drivers/soc/apple/rtkit-internal.h
++++ b/drivers/soc/apple/rtkit-internal.h
+@@ -43,6 +43,7 @@ struct apple_rtkit {
+ 	DECLARE_BITMAP(endpoints, APPLE_RTKIT_MAX_ENDPOINTS);
+ 
+ 	struct apple_rtkit_shmem ioreport_buffer;
++	struct apple_rtkit_shmem system7_buffer;
+ 	struct apple_rtkit_shmem crashlog_buffer;
+ 	struct apple_rtkit_shmem oslog_buffer;
+ 
+diff --git a/drivers/soc/apple/rtkit.c b/drivers/soc/apple/rtkit.c
+index ef0c399ea..79db0355e 100644
+--- a/drivers/soc/apple/rtkit.c
++++ b/drivers/soc/apple/rtkit.c
+@@ -21,6 +21,8 @@ enum {
+ 	APPLE_RTKIT_EP_SYSLOG = 2,
+ 	APPLE_RTKIT_EP_DEBUG = 3,
+ 	APPLE_RTKIT_EP_IOREPORT = 4,
++	/* Advertised by newer firmware and required to complete RTKit boot. */
++	APPLE_RTKIT_EP_UNKNOWN7 = 7,
+ 	APPLE_RTKIT_EP_OSLOG = 8,
+ 	APPLE_RTKIT_EP_TRACEKIT = 0xa,
+ };
+@@ -61,6 +63,8 @@ enum {
+ 
+ #define APPLE_RTKIT_SYSLOG_TYPE GENMASK_ULL(59, 52)
+ 
++#define APPLE_RTKIT_SYSTEM7_BUFFER_REPLY 5
++
+ #define APPLE_RTKIT_SYSLOG_LOG 5
+ 
+ #define APPLE_RTKIT_SYSLOG_INIT	     8
+@@ -191,6 +195,7 @@ static void apple_rtkit_management_rx_epmap(struct apple_rtkit *rtk, u64 msg)
+ 		case APPLE_RTKIT_EP_CRASHLOG:
+ 		case APPLE_RTKIT_EP_DEBUG:
+ 		case APPLE_RTKIT_EP_IOREPORT:
++		case APPLE_RTKIT_EP_UNKNOWN7:
+ 		case APPLE_RTKIT_EP_OSLOG:
+ 		case APPLE_RTKIT_EP_TRACEKIT:
+ 			dev_dbg(rtk->dev,
+@@ -309,6 +314,8 @@ static int apple_rtkit_common_rx_get_buffer(struct apple_rtkit *rtk,
+ 					    buffer->iova >> 12);
+ 		} else {
+ 			reply = FIELD_PREP(APPLE_RTKIT_SYSLOG_TYPE,
++					   ep == APPLE_RTKIT_EP_UNKNOWN7 ?
++					   APPLE_RTKIT_SYSTEM7_BUFFER_REPLY :
+ 					   APPLE_RTKIT_BUFFER_REQUEST);
+ 			reply |= FIELD_PREP(APPLE_RTKIT_BUFFER_REQUEST_SIZE,
+ 					    buffer->size >> 12);
+@@ -420,6 +427,21 @@ static void apple_rtkit_ioreport_rx(struct apple_rtkit *rtk, u64 msg)
+ 	}
+ }
+ 
++static void apple_rtkit_system7_rx(struct apple_rtkit *rtk, u64 msg)
++{
++	u8 type = FIELD_GET(APPLE_RTKIT_SYSLOG_TYPE, msg);
++
++	switch (type) {
++	case APPLE_RTKIT_BUFFER_REQUEST:
++		apple_rtkit_common_rx_get_buffer(rtk, &rtk->system7_buffer,
++						 APPLE_RTKIT_EP_UNKNOWN7, msg);
++		break;
++	default:
++		dev_warn(rtk->dev, "RTKit: Unknown system endpoint 7 message: %llx\n",
++			 msg);
++	}
++}
++
+ static void apple_rtkit_syslog_rx_init(struct apple_rtkit *rtk, u64 msg)
+ {
+ 	rtk->syslog_n_entries = FIELD_GET(APPLE_RTKIT_SYSLOG_N_ENTRIES, msg);
+@@ -544,6 +566,9 @@ static void apple_rtkit_rx_work(struct work_struct *work)
+ 	case APPLE_RTKIT_EP_IOREPORT:
+ 		apple_rtkit_ioreport_rx(rtk, rtk_work->msg);
+ 		break;
++	case APPLE_RTKIT_EP_UNKNOWN7:
++		apple_rtkit_system7_rx(rtk, rtk_work->msg);
++		break;
+ 	case APPLE_RTKIT_EP_OSLOG:
+ 		apple_rtkit_oslog_rx(rtk, rtk_work->msg);
+ 		break;
+@@ -743,6 +768,7 @@ int apple_rtkit_reinit(struct apple_rtkit *rtk)
+ 	flush_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
++	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+@@ -791,6 +817,15 @@ static int apple_rtkit_set_ap_power_state(struct apple_rtkit *rtk,
+ 	return 0;
+ }
+ 
++int apple_rtkit_set_ap_power_on(struct apple_rtkit *rtk)
++{
++	if (rtk->crashed)
++		return -EINVAL;
++
++	return apple_rtkit_set_ap_power_state(rtk, APPLE_RTKIT_PWR_STATE_ON);
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_set_ap_power_on);
++
+ static int apple_rtkit_set_iop_power_state(struct apple_rtkit *rtk,
+ 					   unsigned int state)
+ {
+@@ -839,6 +874,37 @@ int apple_rtkit_boot(struct apple_rtkit *rtk)
+ }
+ EXPORT_SYMBOL_GPL(apple_rtkit_boot);
+ 
++/*
++ * Adopt a session that a previous stage already negotiated. Sends NO
++ * management message. The power-state assignments below are internal
++ * bookkeeping ONLY: Linux did not observe these ACKs, the producer
++ * negotiated them. They exist so apple_rtkit_is_running() stops
++ * reporting a live session as dead, and so no path blocks waiting for
++ * a negotiation that already happened. See ADOPTION-2026-10-28.md,
++ * guess G4, for the completion safety note.
++ */
++int apple_rtkit_adopt_running(struct apple_rtkit *rtk)
++{
++	if (rtk->crashed)
++		return -EINVAL;
++
++	rtk->iop_power_state = APPLE_RTKIT_PWR_STATE_ON;
++	rtk->ap_power_state = APPLE_RTKIT_PWR_STATE_ON;
++	complete_all(&rtk->epmap_completion);
++	complete_all(&rtk->iop_pwr_ack_completion);
++	complete_all(&rtk->ap_pwr_ack_completion);
++	/* ADOPTION run 4: mark the inherited crashlog/syslog endpoints as
++	 * discovered WITHOUT starting them: no STARTEP (contract C1 forbids
++	 * STARTEP for inherited endpoints). This silences the "undiscovered
++	 * endpoint" warnings and lets rx dispatch normally. */
++	set_bit(APPLE_RTKIT_EP_CRASHLOG, rtk->endpoints);
++	set_bit(APPLE_RTKIT_EP_SYSLOG, rtk->endpoints);
++	dev_info(rtk->dev, "RTKit: inherited endpoints 0x01/0x02 marked discovered (no STARTEP)\n");
++	dev_info(rtk->dev, "RTKit: adopting already-running session (no INIT/HELLO/EPMAP sent)\n");
++	return 0;
++}
++EXPORT_SYMBOL_GPL(apple_rtkit_adopt_running);
++
+ int apple_rtkit_shutdown(struct apple_rtkit *rtk)
+ {
+ 	int ret;
+@@ -947,6 +1013,7 @@ void apple_rtkit_free(struct apple_rtkit *rtk)
+ 	destroy_workqueue(rtk->wq);
+ 
+ 	apple_rtkit_free_buffer(rtk, &rtk->ioreport_buffer);
++	apple_rtkit_free_buffer(rtk, &rtk->system7_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->crashlog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->oslog_buffer);
+ 	apple_rtkit_free_buffer(rtk, &rtk->syslog_buffer);
+diff --git a/drivers/soc/apple/sart.c b/drivers/soc/apple/sart.c
+index 9eaf3febb..4b5183dd6 100644
+--- a/drivers/soc/apple/sart.c
++++ b/drivers/soc/apple/sart.c
+@@ -245,6 +245,14 @@ struct apple_sart *devm_apple_sart_get(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(devm_apple_sart_get);
+ 
++u16 apple_sart_protected_mask(struct apple_sart *sart)
++{
++	if (!sart)
++		return 0;
++	return sart->protected_entries & 0xffff;
++}
++EXPORT_SYMBOL_GPL(apple_sart_protected_mask);
++
+ static int sart_set_entry(struct apple_sart *sart, int index, u8 flags,
+ 			  phys_addr_t paddr, size_t size)
+ {
+diff --git a/include/linux/soc/apple/rtkit.h b/include/linux/soc/apple/rtkit.h
+index 42a0666e7..e92387f0d 100644
+--- a/include/linux/soc/apple/rtkit.h
++++ b/include/linux/soc/apple/rtkit.h
+@@ -117,6 +117,22 @@ int apple_rtkit_reinit(struct apple_rtkit *rtk);
+  */
+ int apple_rtkit_boot(struct apple_rtkit *rtk);
+ 
++/*
++ * Adopt a co-processor session that is already running and already
++ * negotiated by a previous stage. Sends no INIT, HELLO, EPMAP, or
++ * power-state message. Returns -EINVAL if the co-processor crashed.
++ * The caller must have verified (CPU running, boot status OK) before
++ * calling; this function performs no hardware check of its own.
++ */
++int apple_rtkit_adopt_running(struct apple_rtkit *rtk);
++
++/*
++ * Tell a co-processor that is already running that the AP is on.
++ * Does not wait for the endpoint map. iBoot has already exchanged that
++ * before Linux's mailbox is listening.
++ */
++int apple_rtkit_set_ap_power_on(struct apple_rtkit *rtk);
++
+ /*
+  * Quiesce the co-processor.
+  */
+diff --git a/include/linux/soc/apple/sart.h b/include/linux/soc/apple/sart.h
+index 2249bf6cd..8468bb0ef 100644
+--- a/include/linux/soc/apple/sart.h
++++ b/include/linux/soc/apple/sart.h
+@@ -50,4 +50,10 @@ int apple_sart_add_allowed_region(struct apple_sart *sart, phys_addr_t paddr,
+ int apple_sart_remove_allowed_region(struct apple_sart *sart, phys_addr_t paddr,
+ 				     size_t size);
+ 
++/*
++ * Bit i is set when probe found a nonzero bootloader entry in slot i.
++ * At most APPLE_SART_MAX_ENTRIES (16) bits are used.
++ */
++u16 apple_sart_protected_mask(struct apple_sart *sart);
++
+ #endif /* _LINUX_SOC_APPLE_SART_H_ */
