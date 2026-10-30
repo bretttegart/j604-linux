@@ -1567,6 +1567,23 @@ discriminating result):**
   changed after the write — the word left the host FIFO; "written
   but stuck" is not the shape). Combined with P1, the fault
   follows the write, not a stuck FIFO.
+- **CORRECTION 2026-10-29 (FIFO + crashlog caveat; original P5 wording
+  above preserved as superseded):** the P5 conclusion "CONSUMED, not
+  stuck" is WITHDRAWN. J604 mailbox.c's poll waits for the A2I EMPTY
+  bit to be SET, so EMPTY bit set = FIFO empty; MSG-SENT EMPTY=0
+  therefore means the A2I FIFO was NOT empty after the write. That
+  shows something remained in the host-to-firmware FIFO (most plausibly
+  the written message still unread, since the host sent nothing else,
+  though a pending message of another kind is not excluded by the bit
+  alone); it does NOT prove consumption. SEND_RET=0 is submission
+  only, not firmware processing. The send-triggered P1 timing
+  conclusion (CFS within 100 ms of the write) is UNAFFECTED because it
+  rests on the CSTS samples, not the FIFO reading. Separately,
+  RTK_CRASHED=0 is NOT proof of no firmware crash: P1's crashlog guard
+  warn-and-returns for an inherited non-CPU-visible buffer without
+  setting crashed, so a genuine crash message on such a buffer would
+  leave RTK_CRASHED=0; CRASHLOG=1's raw message/type remain unresolved
+  pending crash-capture evidence (see crash-capture-design-2026-10-29.md).
 - **(e) incipient/coincidental, further weakened:** Tier A showed
   no spontaneous pre-enable CFS in a message-free boot; Tier B
   shows CFS within 100 ms of the one message, in a boot whose
