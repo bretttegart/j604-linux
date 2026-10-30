@@ -638,7 +638,7 @@ Full review: RTKIT-RACE-INVESTIGATION-2026-10-28.md in this repo
   post-adopt by run 4 SART-allow but still refused pre-adopt via
   adopted==false.
 
-### 11. PRE-MARK TEST: NARROW THEORY REFUTED (Brett-photo-confirmed)
+### 11. PRE-MARK TEST: NARROW THEORY REFUTED AS A SOLE CAUSE (Brett-photo-confirmed)  [wording softened 2026-10-29: failed identically alone; combined effect untested]
 
 - Change — `apple_rtkit_init()` gains bool premark_inherited;
   when true, after bitmap_zero + set_bit(MGMT) and BEFORE
@@ -677,8 +677,8 @@ Full review: RTKIT-RACE-INVESTIGATION-2026-10-28.md in this repo
   undiscovered line ABSENT from both sampled logpages, -22
   ABSENT, syslog-no-buffer ABSENT (same window limit), no Oops
   to 420 s.
-- Conclusion: narrow theory refuted — bitmap / warning /
-  dispatch path does not cause CFS. This does NOT refute the
+- Conclusion: narrow theory refuted as a sole cause — bitmap /
+  warning / dispatch path does not by itself cause CFS. This does NOT refute the
   broader early-buffer theory (pre-adopt BUFFER_REQUEST refusal
   via adopted==false unchanged by pre-marking); that follow-up
   is a separate decision, NOT combined.

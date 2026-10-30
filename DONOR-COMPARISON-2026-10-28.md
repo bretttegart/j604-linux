@@ -71,16 +71,26 @@ Verified in source (read directly):
 
 NOT verified in the fetched sources (do not treat as established):
 
-- Aurora's claimed "prepares adopted state BEFORE mailbox reception
-  starts": in the fetched Aurora rtkit.c, the inherited flags
-  (`crashlog_inherited`, `syslog_inherited`, `oslog_inherited`) are
-  CONSUMED in the rx handlers, but their setters / any pre-mailbox
-  preparation function were not located in that file. The preparation
-  may live in another Aurora file (rtkit-internal.h, a boot/handoff
-  file, or the NVMe probe path). Astra's phrasing of this point is
-  therefore UNVERIFIED as stated, even though the underlying
-  difference (Aurora has an inherited-state concept; J604 does not,
-  beyond two endpoint bits) is real.
+- CORRECTION 2026-10-29 (see ADOPTION-RUNS-2026-10-29.md): the
+  passage below as originally written claimed Aurora's adopted-state
+  preparation was "not located". That claim was WRONG — it came from
+  incomplete retrieval of a truncated browser view. Re-verified Oct
+  29 against aurora-silicon/linux at full commit
+  `d266c703c13f099068284d622d397292241a0224`: Aurora's adopted-init
+  IS present — `apple_rtkit_mark_running()` (rtkit.c L1192-1217) is
+  called from `__apple_rtkit_init()` (L1382-1383) when adopted, BEFORE
+  `claim_rx()` / `mbox_start()`; `apple_rtkit_init_adopted()` is at
+  L1415 and `apple_rtkit_init_adopted_with_buffers()` at L1458.
+  Aurora's adopted path sends NO SET_AP_PWR_STATE (bookkeeping-only,
+  like J604's P1). The original wording is preserved here for the
+  record, struck through by this correction note; do not cite the
+  "not located" claim.
+  ORIGINAL (superseded): Aurora's claimed "prepares adopted state
+  BEFORE mailbox reception starts": in the fetched Aurora rtkit.c,
+  the inherited flags (`crashlog_inherited`, `syslog_inherited`,
+  `oslog_inherited`) are CONSUMED in the rx handlers, but their
+  setters / any pre-mailbox preparation function were not located
+  in that file.
 - The exact register sequence of m1n1's `c9_ctrl_shutdown()` (upstream
   m1n1 src/nvme.c was not fetched). See §2(b) for what IS established.
 - Aurora's `apple_nvme_writeq()` call sites: the wrapper and its

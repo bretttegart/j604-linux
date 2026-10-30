@@ -173,21 +173,30 @@ fetch):
   parsing when syslog_inherited is set, and its crashlog_rx only looks
   for an earlier-crash log in an inherited session.
 
-BUT: the definitions of init_adopted / init_adopted_with_buffers /
-hold_rx / resume_rx, and any assignment of the *_inherited flags to
-true, were NOT found in Aurora's rtkit.c at d266c703 (find for
-"init_adopted" and "hold_rx" in the fetched file returns nothing; the
-only syslog_inherited assignment found is "= false" inside
-syslog_rx_init), nor is there a separate rtkit-adopted file in
-drivers/soc/apple at that commit (directory listing verified). The
-Aurora T8132 file t8132-platform-handoff.c is PMGR policy only, not
-RTKit adoption. So: Aurora's DESIGN INTENT is documented (adopted state
-+ buffers before RX), but the donor report's earlier "not located" stands
-for the implementation at this commit — do not cite an Aurora adopted-
-init implementation as verified code. The correct statement is: Aurora
-designed for this exact problem (pre-RX adopted state), J604 has not
-implemented that design, and the J604 gap is the probe-to-adopt window
-in section 1a.
+CORRECTION 2026-10-29 (see ADOPTION-RUNS-2026-10-29.md): the
+paragraph below as originally written claimed Aurora's adopted-init
+implementation was "not located" at d266c703. That claim was WRONG —
+it came from incomplete retrieval of a truncated browser view.
+Re-verified Oct 29 against aurora-silicon/linux at full commit
+`d266c703c13f099068284d622d397292241a0224`: Aurora's adopted-init
+IS present — `apple_rtkit_mark_running()` (rtkit.c L1192-1217) called
+from `__apple_rtkit_init()` (L1382-1383) when adopted, BEFORE
+`claim_rx()` / `mbox_start()`; `apple_rtkit_init_adopted()` at L1415;
+`apple_rtkit_init_adopted_with_buffers()` at L1458;
+`apple_rtkit_adopt_running()` (L1637-1645) calls mark_running and
+returns 0, sending NO management message. The correct statement is:
+Aurora HAS an adopted-init implementation (bookkeeping-only, no
+SET_AP_PWR_STATE on the adopted path); J604's P1 ports that design;
+and the J604 gap is the probe-to-adopt window in section 1a.
+ORIGINAL (superseded): the definitions of init_adopted /
+init_adopted_with_buffers / hold_rx / resume_rx, and any assignment
+of the *_inherited flags to true, were NOT found in Aurora's rtkit.c
+at d266c703 (find for "init_adopted" and "hold_rx" in the fetched
+file returns nothing; the only syslog_inherited assignment found is
+"= false" inside syslog_rx_init), nor is there a separate
+rtkit-adopted file in drivers/soc/apple at that commit (directory
+listing verified). The Aurora T8132 file t8132-platform-handoff.c is
+PMGR policy only, not RTKit adoption.
 
 ## 3. Pro loader: no Linux-side pre-marking, but confirmation that early traffic is expected
 
